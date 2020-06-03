@@ -2,6 +2,17 @@ baseURL = "https://ttay.me/blog/"
 languageCode = "en-us"
 title = "Thomas Tay's blog"
 theme = "yinyang"
+[markup]
+  [markup.highlight]
+    codeFences = true
+    guessSyntax = false
+    hl_Lines = ""
+    lineNoStart = 1
+    lineNos = true
+    lineNumbersInTable = false
+    noClasses = true
+    style = "monokai"
+    tabWidth = 4
 
 [author]
 name = "Thomas"
@@ -9,7 +20,7 @@ homepage = "https://ttay.me/"
 
 [params]
 headTitle = "Thomas' weblog"
-favicon="assets/img/favicon-32x32.png"
+favicon="/assets/img/favicon-32x32.png"
 
 [[params.socials]]
 name = "About"
