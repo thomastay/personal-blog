@@ -11,8 +11,12 @@ theme = "yinyang"
 headTitle = "Thomas' weblog"
 
 [[params.socials]]
-name = "Homepage"
+name = "About"
 link = "https://ttay.me"
+
+[[params.socials]]
+name = "Blog"
+link = "https://ttay.me/blog"
 
 [[params.socials]]
 name = "Github"
