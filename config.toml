@@ -1,0 +1,11 @@
+baseURL = "https://ttay.io/blog/"
+languageCode = "en-us"
+title = "Thomas Tay's blog"
+theme = "yinyang"
+
+[[params.socials]]
+name = "About Me"
+link = "https://ttay.io"
+[[params.socials]]
+name = "Github"
+link = "https://github.com/thomastay"
