@@ -4,11 +4,12 @@ title = "Thomas Tay's blog"
 theme = "yinyang"
 
 [author]
-  name = "Thomas"
-  homepage = "https://ttay.me/"
+name = "Thomas"
+homepage = "https://ttay.me/"
 
 [params]
 headTitle = "Thomas' weblog"
+favicon="assets/img/favicon-32x32.png"
 
 [[params.socials]]
 name = "About"
