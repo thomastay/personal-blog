@@ -1,11 +1,23 @@
-baseURL = "https://ttay.io/blog/"
+baseURL = "https://ttay.me/blog/"
 languageCode = "en-us"
 title = "Thomas Tay's blog"
 theme = "yinyang"
 
+[author]
+  name = "Thomas"
+  homepage = "https://ttay.me/"
+
+[params]
+headTitle = "Thomas' weblog"
+
 [[params.socials]]
-name = "About Me"
-link = "https://ttay.io"
+name = "Homepage"
+link = "https://ttay.me"
+
 [[params.socials]]
 name = "Github"
 link = "https://github.com/thomastay"
+
+[[params.socials]]
+name = "Linkedin"
+link = "https://linkedin.com/in/thomastayac"

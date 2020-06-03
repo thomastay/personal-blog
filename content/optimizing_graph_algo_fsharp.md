@@ -4,11 +4,13 @@ date: 2020-06-02T22:12:51-06:00
 draft: false
 ---
 
-In this article I'm going to share how I optimized a algorithms interview question down from **58s** down to **1.2s**, nearly a 50x improvement! *Spoiler alert*: Use the right data structures, exploit **cache efficiency**, and **do less work**. 
+In this article I'm going to share how I optimized a graph algorithms interview question down from **58s** down to **1.2s**, nearly a 50x improvement! *Spoiler alert*: Use the right data structures, exploit **cache** efficiency, and **do less work**. 
 
 For those unaware, F# is a *functional-first language that runs on the .NET platform (think C#)*. Despite the title of the article, very little of the optimization techniques applies solely to F#, and so I have intentionally wrote this article to make it comprehensible **even if** you don't understand a line of code in the article. 
 
 *Why F#*? All significant optimizations come from *careful profiling* and *significant refactoring*, and F# has very good support for both. F#'s strong type system makes refactoring safe, and Visual Studio integration makes profiling easy. Also, I love that I get highly tuned data structures via .NET to speed up my algorithms. 
+
+Bear in mind that I am by no means an F# expert, so there may be better ways to optimize this code.
 
 ## The question
 
@@ -92,7 +94,7 @@ This does a Depth-First Search (DFS) to obtain the set of child nodes that are u
   - Adjacency lists (Map from string to Set\<string\>) got changed to a 2D adjacency matrix of bools
   - The cost Map, which used to be a Map from string to string, got changed to a Dictionary from int to int[]. Note that ChildNodes is an alias for int[], I did this so I could change the implementation of ChildNodes without rewriting a lot of code.
 
-```F#
+```fsharp
 // old code
 type Digraph =
     {nodes: string list;
@@ -122,7 +124,7 @@ let countNumChildren node (costMap: Map<string, Set<string>>) =
     dfs node |> ignore
     costMap
 ```
-```F#
+```fsharp
 // New code - uses Dictionaries and 2D arrays
 type Digraph =
     {size: int;
@@ -171,7 +173,7 @@ Now at this point I had spent about three days writing the improved code, and I 
 
 Right now, I was storing each set of child nodes as an int[]. To calculate the set of all nodes under a particular *parent* node, I would recursively compute the set of all nodes under each of the *parent*'s children, then use a HashSet to merge them together. Repeated efforts to improve the code proved futile, shaving only milliseconds off. 
 
-```F#
+```fsharp
 module ChildNodes = 
     let build (lst: int[][]): int[] =
         let d = HashSet()
@@ -190,7 +192,7 @@ C
 ```
 Looking at this graph, to calculate the nodes under C, it suffices to calculate the nodes under B. But under my current scheme, I would calculate the nodes under B **and nodes under A**, then merge those two together! Obviously, this is unnecessary work, since whatever is under A will also be under B. 
 
-Let's take a more real-world example to see this in action:
+Let's take a more complex example to see this in action:
 
 ![A drawing of a graph with multiple transitive edges](/blog/img/modules-graph.svg)
 
@@ -205,7 +207,7 @@ If you've taken a Discrete Mathematics class (spoiler: I used to teach one), you
 Instead, we're going to use a much lesser known algorithm called [Gries' algorithm](http://www.sciencedirect.com/science/article/pii/0167642389900397/pdf?md5=478ed0e9fa69b427f947fd2bd864b463&pid=1-s2.0-0167642389900397-main.pdf&_valck=1)[1] to compute the transitive reduction of a graph. It basically runs Warshall's algorithm in reverse, removing transitive edges from the graph as it finds them. Again, read the paper for more details.
 
 Here is my implementation of Gries' algorithm:
-```F#
+```fsharp
 // Implements the transitve reduction algorithm
 // minor perf improvements have been made
 let reduce (graph: Digraph): Digraph =
@@ -229,7 +231,7 @@ Nonetheless, with a few performance improvements, I managed to get the program t
 But the main improvement came by avoiding work (_again_). Notice that I do an **if true** check on adj.[i,k] before I run the innermost loop. If that is false, we skip a whole inner loop of work. That's **2000** iterations saved - No wonder the speed up was an order of magnitude!
 
 Compare the contrast to the old version (some omissions):
-```F#
+```fsharp
 let reduceOld (graph: Digraph): Digraph =
     for k = n-1 downto 0 do
         for i in 0..n-1 do
@@ -248,6 +250,9 @@ let reduce (graph: Digraph): Digraph =
             )
         ) |> ignore
 ```
+
+## The proof in the pudding (aka the code)
+If you want to see the code, here's a link to the Github repo: [Link to Github Repo](https://github.com/thomastay/expensive_modules)
 
 ## Squeezing the last drop of performance
 
