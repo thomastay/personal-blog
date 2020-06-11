@@ -47,7 +47,7 @@ This can be found in `lib/pure/net.nim`.
 
 ### Streams
 
-WIP.
+We'll cover streams below. For now, just know that it is an interface defined in `lib/pure/streams.nim`.
 
 ## SSL support
 
@@ -94,8 +94,8 @@ This is called Certificate Verification, and it's an important step which we wil
 ### SSL context initialization
 
 To create an SSL context, the newContext function in `lib/pure/net.nim` is called. This function can be configured with the following inputs:
-  1. The protocol version, namely SSLv2, SSLv3, TLSv1. If you have the choice, TLS is the newer protocol, and you should use it if you are able. SSL v2 and v3 have been deprecated since 2011 and 2015 respectively. The default is a compatibility protocol which works with all three.
-  1. Certificate verification option. There are three options for verify mode: `CVerifyNone`: certificates are not verified; `CVerifyPeer`: certificates are verified; `CVerifyPeerUseEnvVars`: certificates are verified and the optional environment variables SSL_CERT_FILE and SSL_CERT_DIR are also used to locate certificates. By default, CVerifyPeer is used. However, in HTTP Client, CVerifyNone is used.
+  1. The protocol version, namely SSLv2, SSLv3, TLSv1. If you have the choice, TLS is the newer protocol, and you should use it if you are able. SSL v2 and v3 have been deprecated since 2011 and 2015 respectively. The default is a compatibility protocol which works with all three. You cannot specify only SSLv2 (or 3), the library will not allow it.
+  1. Certificate verification option. There are three options for verify mode: `CVerifyNone`: certificates are not verified; `CVerifyPeer`: certificates are verified; `CVerifyPeerUseEnvVars`: certificates are verified and the optional environment variables SSL_CERT_FILE and SSL_CERT_DIR are also used to locate certificates. By default, CVerifyPeer is used. However, in HTTP Client, CVerifyNone is set as the default setting.
 
 CA certificates will be loaded, in the following order, from:
   - caFile, caDir, parameters, if set
@@ -120,6 +120,82 @@ Interestingly, we see that the Windows certificate paths don't seem to be mainta
 Certificate verification in Nim was implemented in [this PR](https://github.com/nim-lang/Nim/pull/13697).
 
 
+## Back to HTTP Client
+Let's get back to the HTTP client, after our little detour into how Nim interops with OpenSSL. 
 
+The newHTTPClient() function:
+1. creates an SSL context as above
+1. creates a HTTP Headers object, which is just a pointer to a table (Nim's hashmaps). The table starts out empty.
+1. has maxRedirects = 5
+1. has infinite timeout
+1. has no proxy
+
+## HTTP Client get content
+
+Even though we are focusing on the blocking implementation of getContent(), it is worth noting that the blocking getContent is actually an async operation! 
+```nim
+# httpclient.nim:1071
+proc getContent*(client: HttpClient | AsyncHttpClient,
+                 url: string): Future[string] {.multisync.} =
+  ## Connects to the hostname specified by the URL and returns the content of a GET request.
+  let resp = await get(client, url)
+  return await responseContent(resp)
+```
+
+Let's focus on the two functions called
+
+### get
+The get() call is an asynchronous operation, calling the request() operation, which is just a shim for requestAux().
+
+requestAux() performs the first half of the HTTP request; it:
+1. Parses and validates the URL
+1. Formats the multipart Data accordingly (this is irrelevant for our investigation into GET requests, but is useful for POST requests)
+1. Establishes a TCP Connection between the client and the request URL using newConnection(). This connection is possibly proxied.
+1. If any new headers was generated, override the current headers (for proxies)
+1. sends the headers over the socket.
+1. If multipart Data is used, sends it over the sockets too.
+1. Now, it waits for the response from the HTTP server, then sends it to parseResponse()
+
+newConnection():
+1. connects to any specified proxy
+1. checks if the URL is "https", and if so, whether SSL was enabled earlier
+1. Performs a TCP connection over port 80/443
+1. Does additional checking and parsing for HTTP proxying (irrelevant for our needs).
+
+parseResponse():
+
+This function implements a HTTP parser. 
+1. It first parses the headers, by reading line by line from the socket. Nothing much to describe here, except that it uses helpers from `parseutils.nim`.
+1. then, it create a StringStream() for the body. For asynchrnous clients, it create a FutureStream().
+1. Then, it calls parseBody()
+1. Lastly, it returns a response object, containing the body stream.
+
+parseBody():
+1. Checks if the transfer-encoding is chunked. If it is, it parses the body in chunks. For the moment, let's assume it's not (this simplfies things).
+1. Then, it parses the HTTP body according to [RFC 2616](http://tools.ietf.org/html/rfc2616), i.e. the HTTP/1.1 standard. An interesting note is in detecting connection closure, in which we see that some HTTP/1.1 servers don't close their connections in the expected way.
+1. Then, it calls client.recvFull(size)
+1. Then, it sets the position of the body stream to be 0.
+
+recvFull(size):
+
+This function reads *size* bytes into client.bodyStream() directly from the sockets (remember, sockets are like a buffer!).
+
+### Streams
+
+Finally, we can get to talking about streams. For the purposes of this doc, the stream we're discussing is a StringStream. StringStreams can be found in `lib/pure/streams.nim`.
+
+A StringStream is very much like a C++ stringstream. There is a string object that backs the data and an integer denoting the position in the string. 
+
+The purpose of a stringstream is to allow for asynchronous reading and writing from a string. In our case, since we only care about synchrnous GET, a stringstream might not seem so useful. However, as we can see now, the recvFull needs to *stream* data from the socket into the string as it arrives. This explains the need to model this as a stringstream. 
+
+## responseContent
+We're almost done! Let's recap about where we are. We just awaited get() on the client, and we streamed the data from a URL into the *client* object, then created a response object that points to the bodyStream. 
+
+Lastly, we need to return this content. To do so, we just call readAll() on the bodystream, and return it! Phew!
+
+### What about SSL en/decoding?
+It may seem like the message was never encoded / decoded if we used SSL. Well, it is! the magic comes in newConnection(), which I casually skipped over due to the complexity earlier.
+
+in newConnection, the wrapConnectedSocket(socket) function is called, which takes as input the client's socket and turns it into an SSL socket. Since Nim's sockets are an abstraction over the real OS sockets, simply setting a few flags on the socket is enough to turn it into an SSL socket, which means that the socket.recvLine functions we'd been calling are actually doing the decoding behind the scenes! Isn't that cool?
 
 
