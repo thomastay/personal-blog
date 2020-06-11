@@ -1,6 +1,6 @@
 ---
 title: "Pony actors don't have (their own) stacks"
-date: 2020-06-04T17:25:10+08:00
+date: 2020-06-12T00:00:00+08:00
 draft: true
 ---
 
@@ -71,6 +71,8 @@ It's the blocking operation that requires a stack. To demonstrate, let's pretend
 
 ## DEMO (TODO)
 
+![Golang stack illustration](/blog/img/actor-stack-go.png)
+
 ## Example in Pony
 
 However, in Pony there are **no blocking operations**, which is the key to not needing a stack!
@@ -115,6 +117,12 @@ actor Main
 ```
 You'll notice that we got around not having a stack by storing **x** in a Actor member variable. This is unlike Go and Elixir, where we can just refer to x since we have the stack frame lying around. In Pony, if you want to keep variable across asynchronous method calls, you have to explicitly store it in the Actor, which means that **x** is stored in the *heap*, and not the *stack*.
 
+Let's look at a time diagram.
+
+![Pony-actor-stack](/blog/img/actor-stack-pony.png)
+
+Not shown is the env variable, for clarity. 
+
 Putting it together, we get:
 ```pony
 use "collections"  // for the Range operator
@@ -143,7 +151,7 @@ actor Squarer
     main.printResult(newVal)
 ```
 
-I've tried to keep this example as simple as possible for those new to Pony. In the footnotes I've also implemented this function in other ways. [3]
+I've tried to keep this example as simple as possible for those new to Pony. Personally, I wouldn't implement it this way, I would use Promises. In the footnotes I've also implemented this function in two other ways, to show you how it can be done. [3]
 
 
 # Conclusion
@@ -180,11 +188,11 @@ actor Main
     end
 
     // spawn a squarer actor,
-    // and then call the square behavior on it
+    // and then call the square behavior on it.
     // this~printResult() creates a closure which captures
-    // the local variables _env and x
-    // As we don't want the squarer to mutate our local variables,
-    // we pass it as a val object, which is immutable.
+    // the local variables _env and x.
+    // "recover" is needed to tell the compiler to turn the
+    // closure into a sendable object (in this case, an iso)
     Squarer.square(x, recover this~printResult() end)
 
   be printResult(newVal: I32) =>
@@ -197,3 +205,33 @@ actor Squarer
     callback(newVal)
 ```
 
+### Using promises and partial application
+```pony
+use "collections"  // for the Range operator
+use "promises" 
+
+actor Main
+  new create(env: Env) =>
+    var x: I32 = 0   // x is now a local
+    for i in Range[I32](1, 11) do
+      x = x + i
+    end
+
+    // create a promise that takes as input the squared num
+    // then will print to stdout
+    let p = Promise[I32]
+    p.next[None](recover this~printResult(env, x) end)
+
+    // spawn a squarer actor,
+    // and then call the square behavior on it
+    Squarer.square(x, p)
+
+  be printResult(env: Env, x: I32, newVal: I32) =>
+    env.out.print("Original: " + x.string() 
+                  + ", New: " + newVal.string())
+
+actor Squarer
+  be square(x: I32, p: Promise[I32]) =>
+    let newVal = x * x
+    p(newVal)     // fulfil the promise
+```
