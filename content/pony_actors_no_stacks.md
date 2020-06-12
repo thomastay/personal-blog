@@ -176,6 +176,8 @@ Pony does have promises, which helps to prevent callback hell, but as JS program
 I wonder if it's possible for the Pony compiler to implement Javascript-style async-await, since Pony already has closures and promises.
 
 
+*Notice anything wrong?* [Edit this page on Github](https://github.com/thomastay/personal-blog/blob/master/content/pony_actors_no_stacks.md)
+
 
 ## Footnotes
 1. Yes, this is not valid Pony code. For those watching closely, the main actor has no constructor, so env cannot be used. Moreover, these are not functions, but actually asynchronous behaviors. That said, I didn't want to confuse anyone not familiar with Pony code.
