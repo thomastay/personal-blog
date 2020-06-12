@@ -9,7 +9,7 @@ if ($localHugo) {
 }
 $blogDir = "C:\Users\z124t\Documents\website\blog"
 $current = (Get-Location)
-Start-Process -FilePath $hugoPath -ArgumentList "--destination $blogDir" -NoNewWindow
+Start-Process -FilePath $hugoPath -ArgumentList "--destination $blogDir" -NoNewWindow -Wait
 Set-Location $blogDir
 git add . -A
 git ci -m $message
