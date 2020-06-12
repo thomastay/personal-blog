@@ -4,7 +4,7 @@ date: 2020-06-12T12:00:00+08:00
 draft: false
 ---
 
-In this short article I'm going to talk about how [Pony](https://ponylang.io) gets away with not storing a stack for each of its actors. I was pretty surprised to find this out, given that in most actor model languages actors have their own stacks. For instance, in Go, Goroutines have a stack size of 1KB (with 1KB heaps). Elixir/Erlang processes have a 1.2KB combined stack and heap. 
+In this short article I'm going to talk about how [Pony](https://ponylang.io) gets away with not storing a stack for each of its actors. I was pretty surprised to find this out, given that in most actor model languages actors have their own stacks. For instance, in Go, Goroutines have a stack size of 2KB. Elixir/Erlang processes have a 1.2KB combined stack and heap. 
 But surprisingly, Pony's actors don't have their own stacks! Instead, they use the stack of the OS thread that they're running on.
 
 Let's take a step back. What even is Pony? For the purposes of this blog, all you have to know is that Pony is an Actor based programming language. That means that in Pony, you can define an actors that send messages to each other, like so:   [1]
