@@ -1,7 +1,7 @@
 ---
 title: "Pony actors don't have (their own) stacks"
-date: 2020-06-12T00:00:00+08:00
-draft: true
+date: 2020-06-12T12:00:00+08:00
+draft: false
 ---
 
 In this short article I'm going to talk about how [Pony](https://ponylang.io) gets away with not storing a stack for each of its actors. I was pretty surprised to find this out, given that in most actor model languages actors have their own stacks. For instance, in Go, Goroutines have a stack size of 1KB (with 1KB heaps). Elixir/Erlang processes have a 1.2KB combined stack and heap. 
@@ -67,11 +67,16 @@ end
 
 Both these languages solve this problem in quite the same way. First, the main actor does the summation. Then, the main actor spawns a worker actor to do the squaring. It then **blocks** to allow the second actor to do its work, and waits for the second actor to signal completion, either through a channel or through messages. 
 
+## Demo
+
 It's the blocking operation that requires a stack. To demonstrate, let's pretend that we're running this application on a single CPU. 
 
-## DEMO (TODO)
-
 ![Golang stack illustration](/blog/img/actor-stack-go.png)
+
+As you can see in the figure above, the main Goroutine has its own stack. At time 1, the secondary worker is spawned, which creates another stack. Then, the main Goroutine yields control to the secondary worker. The stack pointer moves to the secondary worker's stack.
+
+The secondary worker then does its work, and sends the newVal result over a channel back to the main goroutine. Having completed its work, the secondary worker yields control back to the main worker. The stack pointer moves to the main worker's stack. Then, the output is printed to the screen.
+At this point, the secondary worker's stack is garbage, and may be collected by the GC when it runs.
 
 ## Example in Pony
 
@@ -121,7 +126,12 @@ Let's look at a time diagram.
 
 ![Pony-actor-stack](/blog/img/actor-stack-pony.png)
 
-Not shown is the env variable, for clarity. 
+1. In the figure above, time 1 is just after computing the sum from 1 to 10. As you can see, there is an implicit *this* pointer stored on the stack, and a *x* member variable stored in the actor's heap. 
+1. Between time 1 and 2, the square behavior is called on the Squarer actor, and the constructor of the Main actor finishes. The Pony scheduler then schedules the Squarer actor to run the square behaviour. As the constructor's stack frame is not needed, it can be popped off the thread stack (whether it actually does is an implementation detail).
+1. At time 2, the square behavior has finished.
+1. At time 3, the scheduler schedules the Main actor's printResult() behavior. The previous stack frame can be popped off.
+
+Not shown for clarity: the *env* variable, the *this* pointer of the Squarer actor. Also, this isn't exactly how it works, thanks to optimizations, but it's a good mental approximation to what happens.
 
 Putting it together, we get:
 ```pony
