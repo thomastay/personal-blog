@@ -67,7 +67,7 @@ end
 
 Both these languages solve this problem in quite the same way. First, the main actor does the summation. Then, the main actor spawns a worker actor to do the squaring. It then **blocks** to allow the second actor to do its work, and waits for the second actor to signal completion, either through a channel or through messages. 
 
-## Demo
+## A diagram to show you what I mean
 
 It's the blocking operation that requires a stack. To demonstrate, let's pretend that we're running this application on a single CPU. 
 
@@ -115,6 +115,7 @@ Finally, let's define printResult():
 ```pony
 actor Main
   var x: I32 // x is a member variable
+  // ---- snipped ----
 
   be printResult(newVal: I32) =>
     _env.out.print("Original: " + x.string() 
