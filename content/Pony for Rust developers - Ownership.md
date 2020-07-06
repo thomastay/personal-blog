@@ -341,12 +341,17 @@ Let's rewrite our *Datum* code to use val, since it cannot mutate.
 
 Here's what we want to express, written in Rust. Note that we use Arc to express shared, immutable ownership of an object:
 
+TODO
 ```rust
 use std::thread;
 use std::sync::Arc;
 
 struct Datum {
     datum: i32,
+}
+
+fn take(d: Arc<Datum>) {
+  println!("{}", d.datum);
 }
 
 fn main() {
@@ -358,7 +363,7 @@ fn main() {
 }
 ```
 
-Let's rewrite this in Pony: (TODO)
+Let's rewrite this in Pony: (TODO)env.
 ```pony
 class Datum
   let datum: I32
@@ -374,6 +379,53 @@ actor Main
   	let my_obj = recover val Datum(10) end
   	Taker.take(my_obj, env.out)
     env.out.print(my_obj.datum.string())
+```
+
+(TODO) explain more
+
+Note that *val* is deep immutability, unlike Rust's **interior mutability** design pattern. This means that if a variable is declared to be *val*, nothing inside can change, at least through that variable. 
+
+Let's take an example to show what I mean. Let's modify the `Datum` class to store an array of integers, instead of just an integer. Now, arrays are mutable, so you normally can modify them, but if wrapped in a `Datum val`, it also becomes immutable.
+```pony
+class ArrWrapper
+  let arr: Array[I32] ref
+  new create(x: I32) =>
+    arr = [x]
+
+actor Main
+  new create(env: Env) =>
+    // If ArrWrapper is ref, no problem!
+  	let my_obj = ArrWrapper(10)
+  	try 
+  	  env.out.print(my_obj.arr(0)?.string()) // 10
+  	  my_obj.arr.update(0, 42)?
+  	  env.out.print(my_obj.arr(0)?.string()) // 42
+  	end
+
+    // If ArrWrapper is val, cannot modify internals
+  	let my_obj_val = recover val ArrWrapper(10) end
+  	try 
+    	my_obj_val.arr.update(0, 42)? // ERROR: Oh, no!!
+  	end
+```
+
+Oh no! We get the infamous *val is not a subcap of ref* error, so common that it has its own section in the Pony FAQ page. 
+```
+Error:
+main.pony:19:27: receiver type is not a subtype of target type
+    	my_obj_val.arr.update(0, 42)? // Oh, no!!
+    	                     ^
+    Info:
+    main.pony:19:16: receiver type: Array[I32 val] val
+        	my_obj_val.arr.update(0, 42)? 
+        	          ^
+    <stdlib path>/array.pony:327:3: target type: Array[I32 val] ref
+      fun ref update(i: USize, value: A): A^ ? =>
+      ^
+    main.pony:2:12: Array[I32 val] val is not a subtype of Array[I32 val] ref:
+            val is not a subcap of ref
+      let arr: Array[I32] ref
+               ^
 ```
 
 ## Unsure?
