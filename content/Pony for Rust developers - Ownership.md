@@ -337,11 +337,12 @@ What if you have an object that you know is never going to change, and you want 
 
 val ensures that an object will never be written to. Since it is immutable for good, we can have multiple threads reading from it at the same time. It's much like how Rust allows unlimited borrows of an object, as long as you never mutate it again. 
 
-Let's rewrite our *Datum* code to use val, since it cannot mutate.
+Let's rewrite our *Datum* code to use val, since it is immmutable.
 
 Here's what we want to express, written in Rust. Note that we use Arc to express shared, immutable ownership of an object:
 
-TODO
+In this code, we make a Datum object, and wrap it in an Arc. Then we clone the Arc, sending this clone across to another thread. Now, both threads can access and print the `datum` field in the object at the same time. The key to this is that since the object is globally immutable, it is safe to be read concurrently by multple threads.
+
 ```rust
 use std::thread;
 use std::sync::Arc;
@@ -363,7 +364,9 @@ fn main() {
 }
 ```
 
-Let's rewrite this in Pony: (TODO)env.
+Let's rewrite this in Pony. Just like before, we need to express that a value is globally immutable. In Pony, we use the `val` ref cap to say that a value is immutable. 
+
+First, we create a val object using the [unexplained](https://tutorial.ponylang.io/reference-capabilities/recovering-capabilities.html) recover block. Then, we simply pass it around to another Actor. It's safe, because the compiler knows it's globally immutable. Just like an Arc wrapped variable. 
 ```pony
 class Datum
   let datum: I32
@@ -372,20 +375,24 @@ class Datum
 
 actor Taker
   be take(d: Datum val, out: OutStream) =>
-    out.print(d.datum.string())
+    out.print(d.datum.string())   // Out: 10
 
 actor Main
   new create(env: Env) =>
   	let my_obj = recover val Datum(10) end
   	Taker.take(my_obj, env.out)
-    env.out.print(my_obj.datum.string())
+    env.out.print(my_obj.datum.string()) // Out: 10
 ```
 
-(TODO) explain more
+### Val is deeeeep
 
-Note that *val* is deep immutability, unlike Rust's **interior mutability** design pattern. This means that if a variable is declared to be *val*, nothing inside can change, at least through that variable. 
+But *val* is more than just *Arc*. Pony uses *val* to mean deep immutability, unlike Rust's **interior mutability** design pattern. This means that if a variable is declared to be *val*, none of its fields can be changed, ever.
 
-Let's take an example to show what I mean. Let's modify the `Datum` class to store an array of integers, instead of just an integer. Now, arrays are mutable, so you normally can modify them, but if wrapped in a `Datum val`, it also becomes immutable.
+This is a subtle distinction but an important one. Let's modify the `Datum` class to store an array of integers, instead of just an integer. Now, arrays are mutable, so you normally can modify them, but once wrapped in a `Datum val`, it also becomes immutable.
+
+In the example below, we create an ArrayWrapper *ref*, which is mutable, and so we can mutate its internal `arr` field. In this example, we update the first item in the internal array to be 42. 
+
+However, if we had originally declared it as an ArrayWrapper *val*, then we can't change the internal `arr` field at all. This is because immutability is **inherited** from the parent! (The scientific term is subgraph ownership, if you're interested)
 ```pony
 class ArrWrapper
   let arr: Array[I32] ref
@@ -409,7 +416,7 @@ actor Main
   	end
 ```
 
-Oh no! We get the infamous *val is not a subcap of ref* error, so common that it has its own section in the Pony FAQ page. 
+Indeed, if we try to mutate the internal array field of a val, we get the infamous *val is not a subcap of ref* error, so common that it has its own section in the Pony FAQ page. 
 ```
 Error:
 main.pony:19:27: receiver type is not a subtype of target type
@@ -427,6 +434,48 @@ main.pony:19:27: receiver type is not a subtype of target type
       let arr: Array[I32] ref
                ^
 ```
+
+I'll leave it as an exercise to rewrite this in Rust, since going too deep into *val* isn't my focus of this post. 
+
+# Finally! Last part!
+
+Phew! Take a deep breath, that was quite a tour! Now it's high time we finished with explaining our original motivating program.  The example at the start of this post is the combination of all the things we've seen so far --- an owned object with immutable shared fields.
+
+Let's see the example again, but this time simplified and with type annotations:
+
+(TODO): expain
+
+```pony
+class Datum
+  // This class merely wraps an integer
+  let datum: I32
+  new create(x: I32) => datum = x
+
+class DatumWrapper
+  // This class wraps an immutable Datum object
+  let field: Datum val
+  new create(x: I32) =>
+    field = recover val Datum(x) end
+
+actor Taker
+  // This actor takes ownership of the DatumWrapper object
+  // and prints its field
+  be take(d: DatumWrapper iso, out: OutStream) =>
+    out.print(d.field.datum.string()) // Out: 10
+
+actor Main
+  new create(env: Env) =>
+  	let my_obj: DatumWrapper iso = 
+        recover iso DatumWrapper(10) end
+  	let alias: Datum val = my_obj.field // imm alias to field
+  	//  ^^^^ alias occurs here
+  	Taker.take(consume my_obj, env.out) // send object
+  	env.out.print(alias.datum.string())  // Out: 10
+    //            ^^^^  alias still can be used
+```
+
+
+# Concluding thoughts
 
 ## Unsure?
 Just like in Rust, if you're not sure of the type of an object, you can always do compiler driven development. Simply try to cast Datum(10) to a different type (e.g. I32 ref), and you'll see:
