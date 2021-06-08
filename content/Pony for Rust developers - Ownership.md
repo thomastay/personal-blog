@@ -4,6 +4,8 @@ date: 2020-07-01T22:47:39+08:00
 draft: true
 ---
 
+## To any readers on Github - I abandoned this guide a while ago since I got un-enamored with Pony. But feel free to read it, it should remain accurate
+
 If you hang around the Rust subreddit long enough, you might meet some language nerd and his usual rant about his favorite language. A few months ago, I was intrigued enough by one such rant that I checked out Pony, and I gotta say: haven't regretted it since. Pony offers a unique take on ownership, very similar to Rust --- but not quite.
 
 Let's back up a little. What even is Pony? Pony is an Actor based programming language. That means that in Pony, you don't deal with OS threads; instead you define actors, which are like mini-processes. Actors can't read and write from the same piece of memory, and to communicate they send each other **messages**.
