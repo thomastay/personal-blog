@@ -4,6 +4,8 @@ date: 2020-06-10T10:40:49+08:00
 draft: true
 ---
 
+## warning: to readers - this article was written over a year ago and I got distracted by other things and didn't finish it. Nim's http client is probably a lot more differnt now
+
 In this article, we'll analyze how the Nim HTTP Client module performs a HTTP GET request.
 
 Let's start top down. A client makes a HTTP request like this:
