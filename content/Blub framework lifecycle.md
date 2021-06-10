@@ -5,7 +5,7 @@ draft: true
 ---
 
 
-1. Blub framework is hacked in a weekend. It is lean and mean, and solves all the problems of Blub domain.
+1. Blub framework is hacked together in a weekend. It is lean and mean, and solves all the problems of Blub domain.
 1. Pre-Blub users look at Blub, think it's really cool but doesn't have any libraries, so they pass.
 1. Blub framework is noticed by smart people, who begin building cool, interesting solutions with it.
 1. Blub now has its own website and learning guides.
@@ -13,11 +13,12 @@ draft: true
 1. The first Blub conference is held in San Francisco.
 1. $BIG_COMPANY_HERE adopts Blub. Giant codebases are written in Blub. Papers are written about Blub. You can get a career in Blub.
 1. Some users complain that apps written in Blub are too slow. Nobody pays attention.
-1. People try to write lightweight replacements for Blub *(blu, lub, blub-lite, lite-blub, pblub)*, but they never seem to gain traction.
+1. Starry-eyed devs try to write lightweight replacements for Blub *(blu, lub, blub-lite, lite-blub, pblub)*, but they never seem to gain traction.
 1. Blub now has its own extension / plugin ecosystem. Maybe even its own language, conveniently hidden in f"{CURRENT_CONFIG_FORMAT}".
 1. Devs now start to complain about Blub tooling (not Blub) being too heavyweight for their `format!("{} MacBook", TWO_YEARS_AGO)`. That doesn't stop Blub-standard from being the \#1 starred project on Github.
 1. Some startups start using Blub for **Glorp** domain. This horrifies Orange website viewers, but not enough of them to matter.
 1. Blub now has its own International Standards Organization and Working groups. They mostly comprise bored megacorp employees trying to get their side projects into Blub.
+1. Glorp domain becomes more and more important, so devs start using Blub for Glorp domain. Even those that should know better.
 1. Users lash out on #{CURRENT_SOCIAL_MEDIA} about slow products and unreliable service. Turns out Blub really only applied to Blub domain, not to Glorp domain. Oops!
 1. People try to write new frameworks for Glorp, but their managers keep telling them "Don't reinvent the wheel" and "Reuse legacy code" (aka. be fungible)
 1. **Blubx** emerges, an extension language for Blub that transpiles to Glorp. All your Blub code is automatically Blubx code.
@@ -46,3 +47,4 @@ draft: true
 1. Blub's creator makes a programming language that nobody cares about.
 1. Blub's creator makes a programming language that many people care about.
 1. Blub gets added to #{YOUR_FAVORITE_REPL_SITE}
+1. Your mom asks you if you're working with Blub.
