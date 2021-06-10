@@ -38,3 +38,11 @@ draft: true
 1. I hope this English lesson is the biggest takeaway from this article.
 1. CURRENT_CONFIG_FORMAT of the day is JSON, but some people insist on writing in Yaml. Poor souls.
 1. I considered a custom location for the first Blub conference, but honestly, where else would it be?
+1. No Blub article is complete without [linking the source of all Blubs](https://www.paulgraham.com/avg.html).
+
+## Epilogue (in no particular order)
+1. Blub gets taught in schools.
+1. Blub's creator gets hired by Microsoft DevDiv.
+1. Blub's creator makes a programming language that nobody cares about.
+1. Blub's creator makes a programming language that many people care about.
+1. Blub gets added to #{YOUR_FAVORITE_REPL_SITE}
