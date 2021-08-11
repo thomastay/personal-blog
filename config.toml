@@ -23,7 +23,7 @@ headTitle = "Thomas' weblog"
 favicon="/assets/img/favicon-32x32.png"
 
 [[params.socials]]
-name = "More Articles"
+name = "More articles"
 link = "https://ttay.me/blog"
 
 [[params.socials]]
