@@ -8,5 +8,4 @@ if (-Not $NoBrowser) {
     Start-Process 'http://localhost:1313/blog/'
   }
 }
-$hugoPath = "C:\Users\z124t\source\repos\hugo\hugo.exe"
-& $hugoPath server -D
+hugo server -D

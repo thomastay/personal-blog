@@ -4,6 +4,8 @@ date: 2021-06-09T19:09:23-07:00
 draft: false
 ---
 
+*Warning: snark*
+
 
 1. Blub framework is hacked together in a weekend. It is lean and mean, and solves all the problems of Blub domain.
 1. Pre-Blub users look at Blub, think it's really cool but doesn't have any libraries, so they pass.
