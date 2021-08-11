@@ -1,7 +1,7 @@
 ---
 title: "Blub Framework Lifecycle"
 date: 2021-06-09T19:09:23-07:00
-draft: true
+draft: false
 ---
 
 
@@ -20,7 +20,7 @@ draft: true
 1. Blub now has its own International Standards Organization and Working groups. They mostly comprise bored megacorp employees trying to get their side projects into Blub.
 1. Glorp domain becomes more and more important, so devs start using Blub for Glorp domain. Even those that should know better.
 1. Users lash out on #{CURRENT_SOCIAL_MEDIA} about slow products and unreliable service. Turns out Blub really only applied to Blub domain, not to Glorp domain. Oops!
-1. People try to write new frameworks for Glorp, but their managers keep telling them "Don't reinvent the wheel" and "Reuse legacy code" (aka. be fungible)
+1. People try to write new frameworks for Glorp, but their managers keep telling them "Don't reinvent the wheel" and "Reuse legacy code" (aka. be fungible).
 1. **Blubx** emerges, an extension language for Blub that transpiles to Glorp. All your Blub code is automatically Blubx code.
 1. Blubx takes the world by storm. People trip over themselves to write transpilers, minifiers, optimizers, linkers (aka. macroexpand) for Blubx.
 1. $BIG_COMPANY_HERE adopts Blubx. Giant codebases are written in Blubx. Papers are written about Blubx. You can get a career in Blubx.

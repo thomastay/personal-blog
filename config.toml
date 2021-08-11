@@ -23,16 +23,17 @@ headTitle = "Thomas' weblog"
 favicon="/assets/img/favicon-32x32.png"
 
 [[params.socials]]
-name = "About"
-link = "https://ttay.me"
+name = "More Articles"
+link = "https://ttay.me/blog"
 
 [[params.socials]]
-name = "Blog"
-link = "https://ttay.me/blog"
+name = "Homepage"
+link = "https://ttay.me"
 
 [[params.socials]]
 name = "Github"
 link = "https://github.com/thomastay"
+
 
 [[params.socials]]
 name = "Linkedin"
