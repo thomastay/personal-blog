@@ -1,7 +1,7 @@
 --- 
 title: "Decompressing a gzip file by hand"
 date: 2021-10-16T00:03:59-07:00
-draft: true
+draft: false
 ---
 
 Let's make a gzipped file and see what's in it. We'll keep it simple: just write 8 'a's to a file. 
