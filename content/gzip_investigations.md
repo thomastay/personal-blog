@@ -139,6 +139,8 @@ The "repeat 6x, 1 behind" is a length+distance (LEN,DIST) code, and it tells the
 
 Not too shabby, we've encoded our 8 'a's and LF (originally 72 bits) into 46 bits with 2 padding bits.
 
+But I feel that gzip could have done better, though. It could have simply encoded a single `a` followed by 261, which is the code to repeat 7 times. I thought this was because I ran `gzip -1`, but running regular gzip seems to repro this. I don't understand why this is the case and I hope someone can explain this.
+
 ## Finishing off - checksum and size
 
 Let's finish off the gzip file. Next we're supposed to see a CRC32. Going to an online crc32 tool, we see that the uncompressed 8 'a's with a line feed will generate: `ad d7 77 b6`.
