@@ -66,13 +66,13 @@ Let's break it down. Unfortunately, xxd prints out the bytes one by one, from MS
        (map #(apply str %)) 
        (map str/reverse)))
 
-(comment (reverse-str-bytewise "01001011 01001100 10000100 00000000 00101110 00000000"))
+(reverse-str-bytewise "01001011 01001100 10000100 00000000 00101110 00000000")
 ; ("11010010" "00110010" "00100001" "00000000" "01110100" "00000000")
 ; ^^^^^^ This is the bitstream we will examine below ^^^^^^
 
 (defn str->bits [s] (->> s (str/reverse) (mapv #(if (= % \1) 1 0))))
 
-(comment (str->bits "110010"))
+(str->bits "110010")
 ; [0 1 0 0 1 1]
 
 (defn bin->dec [s] 
@@ -82,10 +82,10 @@ Let's break it down. Unfortunately, xxd prints out the bytes one by one, from MS
                     (if (= elem 1) (+ acc (bit-shift-left 1 i)) acc)) 
                   0))
 
-(comment (bin->dec "10001"))
+(bin->dec "10001")
 ; 17
 ```
-
+_The above is [Clojure code](https://clojure.org/). Don't worry if you don't understand it, it's just some helpers_
 ## Decoding the block
 ```
 8bitswise: 11010010   00110010 00100001 00000000 01110100 00000000
@@ -177,3 +177,5 @@ I found these articles extremely helpful, in no particular order:
 1. [Dissecting the GZIP format, by Joshua Davies](https://commandlinefanatic.com/cgi-bin/showarticle.cgi?article=art001)
 1. [Understanding zlib, by Euccas Chen](https://www.euccas.me/zlib/)
 1. [An explanation of the Deflate algorithm, by Antaeus Feldspar](https://zlib.net/feldspar.html)
+1. [gzip + poetry = awesome, by Julia Evans](https://jvns.ca/blog/2013/10/24/day-16-gzip-plus-poetry-equals-awesome/)
+1. [How does gzip work?, by Julia Evans](https://jvns.ca/blog/2013/10/16/day-11-how-does-gzip-work/)
