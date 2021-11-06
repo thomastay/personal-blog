@@ -1,7 +1,7 @@
 ---
 title: "I_made_x86_flags"
 date: 2021-11-06T12:16:51-07:00
-draft: true
+draft: false
 ---
 
 This is going to be a tiny blog post to say that I've made a tiny site (microsite?) that's all about x86 flags. I'm learning about x86 assembly, SIMD, and microarch these few weeks. 
