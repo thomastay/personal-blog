@@ -1,5 +1,5 @@
 ---
-title: "I_made_x86_flags"
+title: "I made x86 flags"
 date: 2021-11-06T12:16:51-07:00
 draft: false
 ---
