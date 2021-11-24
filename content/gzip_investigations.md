@@ -144,7 +144,7 @@ But I feel that gzip could have done better, though. It could have simply encode
 
 ## Finishing off - checksum and size
 
-Let's finish off the gzip file. Next we're supposed to see a CRC32. Going to an online crc32 tool, we see that the uncompressed 8 'a's with a line feed will generate: `ad d7 77 b6`.
+Let's finish off the gzip file. Next we're supposed to see a CRC32. Going to an [online crc32 tool](https://emn178.github.io/online-tools/crc32.html), we see that the uncompressed 8 'a's with a line feed will generate: `ad d7 66 b6`.
 Indeed, if we look at the hex stream again:
 
 ```
