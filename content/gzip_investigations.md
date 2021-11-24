@@ -151,7 +151,8 @@ Indeed, if we look at the hex stream again:
 $ xxd test.out.gz
 00000000: 1f8b 0808 bf35 6a61 0403 7465 7374 2e6f  .....5ja..test.o
 00000010: 7574 004b 4c84 002e 00b6 66d7 ad09 0000  ut.KL.....f.....
-00000020: 00                
+00000020: 00                    ^^^^^^^^^^
+                                  Here!
 ```
 
 We can clearly see `b6 66 d7 ad`, in little endian byte order. This is the crc checksum.
@@ -169,6 +170,7 @@ crc32: b6 66 d7 ad
 size: 09 00 00 00                
 ```
 
+Of course, this barely scratches the surface - the real meat of the gzip algorithm is the dynamic huffman codes. In the future, I want to write a part 2 covering this but it will probably be less *by hand*-ish, and more of an explanatory algorithm to inflate the huffman tables. I tried doing dynamic codes by hand and I quickly ran out of patience after an hour.
 
 If you see any mistakes, [please correct them on Github](https://github.com/thomastay/personal-blog/issues), or email me at `thomastayac`. Google mail.
 
