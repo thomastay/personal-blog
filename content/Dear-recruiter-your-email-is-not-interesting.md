@@ -157,7 +157,7 @@ I don't have time to respond to every one either.
 
 4. You misunderstand, these emails aren't meant to encourage you to apply, they're there to spread awareness of the company.
 
-Then I hope you won't mind if I mark you as spam, encouraging Gmail's spam filter to block future recruitment emails from your company. Your loss.
+Then I hope you won't mind if I mark you as spam, encouraging Gmail's spam filter to block future recruitment emails from your company.
 
 # References
 
