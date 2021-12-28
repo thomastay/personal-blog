@@ -63,7 +63,7 @@ Let's start with the most obvious issue. I don't like phone calls. Last week, I 
 
 If I hate phone calls so much, even with a customer service agent whose *job* it is to attend to me, there's no way that I'll enjoy calling you. And I'm willing to bet that many engineers are in the same boat.
 
-So if you really want to hire me, why not consider email? You're already emailing me, why do we have to switch to a different medium?
+So, if you really want to hire me, why not consider email? You're already emailing me, why do we have to switch to a different medium?
 
 ### It's not about me
 
@@ -75,11 +75,11 @@ Can you imagine if we applied to jobs this way? Just imagine the email you'd see
 
 > Dear Recruiter,
 >
-> I'm ${blah blah}, a high performing software engineer skilled in Typescript, GraphQL, Web Workers and large scale Web Application development. At work every day, I face many technical challenges and deal with many high profile clients.
+> I'm ${blah blah}, a high performing software engineer skilled in Typescript, GraphQL, Web Workers and large-scale Web Application development. At work every day, I face many technical challenges and deal with many high-profile clients.
 >
 > After seeing your company's email online, I had to reach out. I envision myself playing a key role in your Web Application infrastructure, whatever that may be.
 >
-> Please hire me for a job, and let me know if you're interested in a quick interview.
+> Please hire me for a job and let me know if you're interested in a quick interview.
 
 Ridiculous, isn't it? Anyone who applied to a job this way would get their email laughed at before being dumped straight to spam. Here's 3 problems with my fictitious application:
 
@@ -95,7 +95,7 @@ If you really are interested in hiring me, then I'd appreciate some elbow grease
 
 > You can't manage what you can't measure - Peter Drucker, quoted out of context
 
-None of the 3 emails above mentioned a specific role that they wanted me for. But even in the emails that did (not shown here), many of them don't give much information about the role. Often it's some vague engineering position that does something.
+None of the 3 emails above mentioned a specific role that they wanted me for. But even in the emails that did (not shown here), many of them don't give much information about the role. Often, it's some vague engineering position that does something.
 
 I mean, just look at email number 3's job description. 
 
@@ -123,7 +123,7 @@ Notice that you can usually get this information on a job board like Indeed, bec
 
 I want to end this rant by remembering the human. Look, ${Nice recruiter}, I'm sure you're a nice person. I'm sure that if we were to meet in person, I'd be happy to drink a beer, eat a meal, or just chat about random stuff with you.
 
-This isn't about you, and my criticism isn't personal. If anything, I hope that this encourages you to change the email template you have to at least be more humanizing. Because your email currently isn't very nice.
+This isn't about you, and my criticism isn't personal. If anything, I hope that this encourages you to change the email template you have. Because your email currently isn't very nice.
 
 Look, I even called you Nice Recruiter! And I mean it with no hint of sarcasm. Every recruiter has been nice, polite, and respectful, which is why I feel like I should reply. But I just can't, because your email is so soulless and so devoid of anything to reply to.
 
@@ -157,4 +157,4 @@ I don't have time to respond to every one either.
 
 4. You misunderstand, these emails aren't meant to encourage you to apply, they're there to spread awareness of the company.
 
-Then I hope you won't mind if I mark you as spam, encouraging GMail's spam filter to block future recruitment emails from your company. Your loss.
+Then I hope you won't mind if I mark you as spam, encouraging Gmail's spam filter to block future recruitment emails from your company. Your loss.
