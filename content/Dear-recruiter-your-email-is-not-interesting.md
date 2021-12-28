@@ -161,4 +161,4 @@ Then I hope you won't mind if I mark you as spam, encouraging Gmail's spam filte
 
 # References
 
-1. [Nayuki's poor feedback page](https://www.nayuki.io/page/poor-feedback-from-readers) and [Contact Policy](https://www.nayuki.io/page/about) are good reading material.
+1. [Nayuki's poor feedback page](https://www.nayuki.io/page/poor-feedback-from-readers) and [Contact Policy](https://www.nayuki.io/page/about#contact) are good reading material.
