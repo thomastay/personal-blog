@@ -16,7 +16,7 @@ From: ${Nice Recruiter} ${recruiter}@${Company}.com
 
 To: Thomas ${My Email}@gmail
 
-### Email Specimen 1
+### Email specimen 1
 
 > 
 > Hi Thomas,
@@ -129,7 +129,7 @@ Look, I even called you Nice Recruiter! And I mean it with no hint of sarcasm. E
 
 # So what now?
 
-I'm going to offer a challenge. If you send me with an email addressing all of these concerns, I will get on a phone call with you if I like the offer. If I don't, I will write you a personalized email explaining why not.
+I'm going to offer a challenge. If you send me an email addressing all of these concerns, I will get on a phone call with you if I like the offer. If I don't, I will write you a personalized email explaining why not.
 
 If you need info about me, [my home page serves as my resume](/).
 
