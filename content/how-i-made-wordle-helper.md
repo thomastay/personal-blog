@@ -6,11 +6,11 @@ draft: true
 
 I recently made a web app that helps you play Wordle, everyone's favorite word game. In case you haven't heard of it, Wordle is a game where you try and guess a 5 letter word in 6 tries (just Google it!)
 
-If you want to check out my Wordle Helper, [click here to go to my website and try it out](/wordle-helper).
+#### [Click here to go to my website and try it out](/wordle-helper).
 
 TODO: screenshot here!
 
-I thought it might be worth sharing the engineering of how I designed, wrote and published this site. Plenty of people have written 
+I thought it might be worth sharing the engineering of how I designed, wrote and published this app. Plenty of people have written 
 [much](https://github.com/jason-chao/wordle-solver)
 [better](https://www.kerrigan.dev/2022/01/10/building-a-wordle-solver-in-python.html)
 [wordle](https://github.com/theboywhoboasted/whurdle)
@@ -20,7 +20,7 @@ than mine, using
 
 So why is mine special? Well, I designed [Wordle Helper](/wordle-helper) with these goals: 
 1. Runs everything locally, no need for a backend server.
-1. Response time under 10ms, the threshold for instantanous 
+1. Response time under 10ms, the threshold for instantanous feedback
 1. Suggest words that a human would guess, not necessarily one that is mathematically optimal
 1. Fast build times as a developer
 
@@ -92,7 +92,7 @@ At any rate, I made my life harder for your benefit. *you're welcome* 😅
 ## 2.2 How to inline?
 
 The process of inlining the JS wasn't that glamorous, at the beginning I literally just copy and pasted everything from one file into the other manually. Eventually that got very error prone, so I did two things:
-1. Installed esbuild to produce a minified one liner file.
+1. Installed esbuild to produce a minified one liner file. Esbuild is a godsend to the JS dev tools world, and Evan Wallace should be praised a million times for this.
 1. Wrote a short Python script that ran esbuild and inlined this one liner at line number 54 of the file. Yes, it was hardcoded. No, I'm not (too) ashamed of this.
 
 This _terrible_ solution looked something like this:
@@ -124,7 +124,7 @@ To solve this problem, I added "template" tags to my HTML, which looked like thi
 ```
 My python script then looked for these (hardcoded) tags, and inlined the JS / CSS files there. Note the lack of indents on those tags, that's because my first version of the script didn't even bother trimming whitespace.
 
-Eventually the Python script became the bottleneck in my build process. While not too slow itself (~600ms), `esbuild` can parse, minify and print my entire JS code in under 8ms. My script does a lot less, so it should definitely run faster.
+Eventually the Python script became the bottleneck in my build process. At 600ms it wasn't too slow, but `esbuild` can parse, minify and print my entire JS code in under 8ms. My script does a lot less, so it should definitely run faster.
 
 Instead of rewriting it in JS, another dynamic language, I decided to take a lesson from SumatraPDF's build system. [It's entirely custom and written in Go](https://github.com/sumatrapdfreader/sumatrapdf/blob/27cad0a2914f36789aae0bca8093e4241e3912bf/do/build_epub_docs.go#L1).
 
@@ -146,6 +146,7 @@ for scanner.Scan() {
     continue
   }
   out.WriteString(l)
+  out.WriteByte('\n')
 }
 ```
 There are some asterisks with this templater (see Footnotes), but man does it run fast (~30ms). I got a **20x speedup**, which is worth it if you ask me.
@@ -164,8 +165,8 @@ It shows the gzipped size of the final bundled index.html, as well as the non-gz
 
 This is extremely useful in helping you trace the history of your bundle size, and is basically a very simple version of a perf gate. It took me longer than I wanted to implement this, but once I did it I realized what a lifesaver it was. 
 
-So many times, I thought I'd found an optimization to reduce bundle size, but it only reduced the minified bundle size, not the gzipped minified bundle size.
-Previously, to figure this out, I would have to do the gzipping manually.
+So many times, I thought I'd found an optimization to reduce bundle size, but it only reduced the minified bundle size, not the gzipped bundle size.
+Previously, to figure this out, I would have to do a lot of manual work.
 
 It's surprisingly easy to set up. Go comes with a builtin `compress/gzip`, and using it as a simple as:
 ```go
@@ -175,7 +176,7 @@ zw.Write(outputtedHtmlFileAsBytes)
 gzippedSize := b.Len()
 ```
 
-Since I had already written my own templater, it was pretty easy to add this in as a step after writing the template file to disk.
+Since I had already written my own templater, it was pretty easy to add this in as a step after writing the index.html to disk.
 
 ## 2.4 Miscellaneous build decisions
 
@@ -290,7 +291,9 @@ For instance, here's some words that a naive algorithm might accept:
 The filtering algorithm provided in kerrigan.dev accepts the last suggestion KOALA listed above, which is incorrect.
 
 # Footnotes
-1. Be careful at brazenly doing HTML minification by stripping newlines. If you look at the history of my templater, you'll see a seemingly random if check that checks if a line begins with a open brace or close brace. That's because this templater removes all newlines in the file. But I use Prettier for code formatting, which sometimes breaks HTML tags into multiple lines. Here's an example:
+
+### F1. HTML minification
+Be careful at brazenly doing HTML minification by stripping newlines. If you look at the history of my templater, you'll see a seemingly random if check that checks if a line begins with a open brace or close brace. That's because this templater used to remove all newlines in the file. The problem comes about when Prettier sometimes breaks HTML tags into multiple lines. Here's an example:
 ```html
 <input id="abc"></input>
 <image
@@ -298,32 +301,32 @@ The filtering algorithm provided in kerrigan.dev accepts the last suggestion KOA
   alt="A potato"
 />
 ```
-In my templater, since I don't do proper HTML lexing and parsing, this would become:
+In my templater, since I don't do proper HTML lexing and parsing, this would have become:
 ```
 <input id="abc"></input><imagesrc="potato/a/b/c/d/e/f/potat.jpg"alt="A potato"/>
 ```
 Oops! `<imagesrc` is not a valid HTML tag.
 
-In the time this blog post was written, I stopped using this hack because it cost me so much trouble. Here's an example it would break on:
+In the time this blog post was written, I stopped stripping newlines because it cost me so much trouble. Here's another example it would break on:
 
 ```html
-<textarea>
+<p>
 10 apples are
 < than 20 apples because 10 < 20.
-</textarea/>
+</p>
 ```
 This gets minified to:
 ```
-<textarea>
-10 apples are< than 20 apples because 10 < 20.</textarea/>
+<p>
+10 apples are< than 20 apples because 10 < 20.</p>
 ```
 Oops! There is a "are<" when it should have been "are\n<", the line break is important for textareas.
 
-In general, this is a classic example of why [you can't parse HTML with regexes](https://stackoverflow.com/a/1732454). Your author has fallen into this trap.
+In general, this is a classic example of why [you can't parse HTML with regexes](https://stackoverflow.com/a/1732454). Your author fell into this trap and had to bail out.
 
-Personally, I'm looking to switch to [tdewolff's minifier](https://github.com/tdewolff/minify).
+Personally, I'm looking to switch to [tdewolff's minifier](https://github.com/tdewolff/minify). But I haven't had time to do it yet, and the savings seem minimal (about 40 or so bytes)
 
-2. Thoughts (aka rants) about Go
+### F2. Thoughts (aka rants) about Go
 
 Every [blog post involving Go has to have one](https://fasterthanli.me/articles/some-mistakes-rust-doesnt-catch), right? In my case, my big issue with Go is their inflexible build system.
 
@@ -331,3 +334,11 @@ Basically, I wanted to put my Go files in a nested directory and compile it ther
 
 Regarding using Go for build tooling, I enjoyed it! Would do it again. It's defintely more verbose than Python, but the speedup is worth it, and the Go standard library is just as good, if not better, than Python's.
 
+### F3. Is it worth increasing build time to lower bundle size?
+I have [an open PR out](https://github.com/thomastay/wordle-helper/pull/3) for myself to consider adopting [terser](https://terser.org/). Terser is an industry standard tool for minifying Javascript files, and it's used by basically every big company except Google. Google has its own optimizer called the Closure compiler, which can compress JS better but at the cost of [only accepting a subset of Javascript](https://developers.google.com/closure/compiler/docs/api-tutorial3#dangers).
+
+Using terser would decrease the bundle size by 140 bytes gzipped, which is quite significant at a 1.5% decrease in bundle size.
+
+However, terser is only moderately fast, and it would add ~500ms to the incremental build times.
+
+Should I add terser to this project as a default build step?

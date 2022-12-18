@@ -11,7 +11,7 @@ I started this blog last year, and though I've written a few pieces, I've ensure
 While there isn't any particularly fancy trick I use to make the page small (I literally just don't do a lot of stuff), I figure it is at least worth writing down. At the very least, it'll help me restart everything from scratch if need be.
 
 # Build system
-First and foremost in every blog is the build system (aka CMS, aka static site generator). For some, their CMS is Html and Css. I don't know about you, but I don't enjoy writing Html tags so I use [Hugo](https://gohugo.io). It lets me write markdown (which is sorta like plain text), but converts it to html for me. 
+First and foremost in every blog is the build system (aka CMS, aka static site generator). For some, their CMS is HTML and CSS. I don't know about you, but I don't enjoy writing HTML tags so I use [Hugo](https://gohugo.io). It lets me write markdown which is more or less like plain text.
 
 That's basically all I use Hugo for, I don't use any of its fancy features. The main reason why I use Hugo and not some other CMS is because it's fast and it supports Windows out of the box.
 
@@ -19,16 +19,17 @@ Here's the hugo version used to generate this blog post. It'll probably change b
 
 ```
 ~\D\blog> hugo version
-hugo v0.89.4-AB01BA6E windows/amd64 BuildDate=2021-11-17T08:24:09Z VendorInfo=gohugoio
+hugo v0.91.2-1798BD3F windows/amd64 BuildDate=2021-12-23T15:33:34Z VendorInfo=gohugoio
 ```
 
 To keep up with software updates, I use Scoop as my package manager to manage my Hugo builds. Although Hugo subscribes to the 0-ver scheme, it is remarkably stable and I think upgrading only broke my builds once, very early on.
 
 # Editor
 
-I use Neovim to write blog posts. As I mentioned, I really just want to write into a txt file, but markdown lets me have titles, links and code snippets, so I use markdown but basically treat it as plain text.
+I use [Neovim](https://neovim.io/) to write blog posts. As I mentioned, I really just want to write into a txt file, but markdown lets me have titles, links and code snippets, so I use markdown but basically treat it as plain text. 
 
-At work, I use VSCode with Prettier for Markdown documentation, that seems to work well too.
+I make quite extensive use of Neovim, and I'll address it in another post, but suffice to say that [Neovim has improved](https://neovim.io/charter/) [leaps and bounds](https://benfrain.com/neovim-0-5-lua-built-in-lsp-treesitter-and-the-best-plugins-for-2021/) from just a [fork of Vim](https://toroid.org/modern-neovim).
+
 
 # Theme
 
@@ -58,4 +59,6 @@ Another thing that would probably be nice is something like what [Nayuki does wh
 
 Something which I won't implement, but is quite the visual delight, is Amos' "Cool bear's hot tip" (fasterthanli.me). [Check out his blog post on Rust build profiling](https://fasterthanli.me/articles/why-is-my-rust-build-so-slow) to see what it looks like.
 
+
+# Performance
 
