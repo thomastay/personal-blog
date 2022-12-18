@@ -1,3 +1,9 @@
+---
+title: "A Computer's no"
+date: 2021-12-27T17:55:44-08:00
+draft: false
+---
+
 # A Computer's No
 
 A computer's No is the most powerful answer for code quality that has ever
