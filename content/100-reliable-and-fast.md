@@ -22,6 +22,8 @@ B) reading mangled Typescript ES5 output for async functions. For those unwaware
 
 In both these cases, we were saved by the presence of a solution which was 100% effective and fast. That's ripgrep for code search and setting up breakpoints in minified code. Both solutions have a better, more correct alternative, namely IDEs and source maps respectively. Yet in practice, I can assure you that we have to fallback to the simpler methods at least once daily. 
 
+Here's some light mode software that I thought of:
+
 1. Gmail html only site
 1. Github vs Git vs Git plumbing tools (can always fall back to Git intenrals)
 1. Erlang crash handler
