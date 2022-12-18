@@ -1,7 +1,7 @@
 ---
 title: "100% Reliable and Fast"
 date: 2022-01-30T19:31:48+08:00
-draft: true
+draft: false
 ---
 
 I work on a front end project which has two Git repositories, three completely different build systems, five languages, over 10,000 files and 10 million lines of code. It's been built over six years, with the effort over at least a thousand engineers. At this scale, IDE's just can't work effectively. 
