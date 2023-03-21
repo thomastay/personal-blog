@@ -1,5 +1,5 @@
 ---
-title: "Domain Moved 1"
+title: "Domain Moved"
 date: 2023-03-21T14:43:03+08:00
 draft: false
 ---

@@ -16,7 +16,7 @@ theme = "yinyang"
 
 [author]
 name = "Thomas"
-homepage = "https://ttay.me/"
+homepage = "https://thomastay.dev/"
 
 [params]
 headTitle = "Thomas' weblog"
@@ -24,11 +24,11 @@ favicon="/assets/img/favicon-32x32.png"
 
 [[params.socials]]
 name = "More articles"
-link = "https://ttay.me/blog"
+link = "https://thomastay.dev/blog"
 
 [[params.socials]]
 name = "Homepage"
-link = "https://ttay.me"
+link = "https://thomastay.dev"
 
 [[params.socials]]
 name = "Github"
