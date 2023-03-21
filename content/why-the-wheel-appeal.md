@@ -1,7 +1,7 @@
 ---
 title: "Why the Wheel Appeal"
 date: 2023-02-11T01:00:40-08:00
-draft: true
+draft: false
 ---
 
 I don't understand why the Wheel trading strategy is so popular on Reddit. Am I missing something? This post is a semi coherent ramble where I try and figure out why, oh why, is **the wheel** so heavily promoted on Reddit.
