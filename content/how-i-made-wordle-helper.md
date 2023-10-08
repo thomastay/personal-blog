@@ -1,14 +1,12 @@
 ---
 title: "How I Made Wordle Helper"
 date: 2022-02-22T18:16:00-08:00
-draft: true
+draft: false
 ---
 
 I recently made a web app that helps you play Wordle, everyone's favorite word game. In case you haven't heard of it, Wordle is a game where you try and guess a 5 letter word in 6 tries (just Google it!)
 
 #### [Click here to go to my website and try it out](/wordle-helper).
-
-TODO: screenshot here!
 
 I thought it might be worth sharing the engineering of how I designed, wrote and published this app. Plenty of people have written 
 [much](https://github.com/jason-chao/wordle-solver)
@@ -234,6 +232,8 @@ I added a demo button that would input two carefully chosen guesses, to help peo
 _Lesson 3: People see, People do._
 
 ## 3.2 Sorting by frequency
+
+(Update: Oct 2023 - I ran out of motivation for this blog post and stopped here. Still publishing this in case folks are interested in the rest)
 
 ## 3.3 Server Side Rendering (SSR)
 
