@@ -8,7 +8,7 @@ This is going to be a tiny blog post to say that I've made a tiny site (microsit
 
 The eflags register is really confusing, so i made a tiny simulator to help me remember which flag is which. Particularly the carry and overflow flags, cos f**k whoever thought that was a good way to name their flags.
 
-You can find the site here: [x86 flags](https://ttay.me/x86flags.html)
+You can find the site here: [x86 flags](https://thomastay.dev/x86flags.html)
 
 Just FYI, here are some sites that I find useful when learning x86:
 1. [Agner fog](https://agner.org/optimize/)
