@@ -1,31 +1,45 @@
 --- 
-title: "Decompressing a gzip file (almost) by hand, part 2: Now with Huffman!"
-date: 2021-10-17T00:03:59-07:00
+title: "Decompressing a gzip file by hand (sorta), part 2: Now with Huffman!"
+date: 2023-11-26:03:59-07:00
 draft: true
 ---
 
-Let's decompress a gzip file by hand, just [like we did last time](./blog/gzip_investigations), but this time let's see the decompressed huffman codes too.
+Let's decompress a gzip file by hand, just [like we did last time in part 1](/blog/gzip_investigations), but this time let's decode the decompressed huffman codes too.
 
 Start by writing some data to disk:
 ```
-$ echo "tobeornottobenot" > test-huff.txt
+$ echo "To be, or not to be, that is the question:
+Whether 'tis nobler in the mind to suffer
+The slings and arrows of outrageous fortune," > test-huff.txt
 $ xxd test-huff.txt
-00000000: 746f 6265 6f72 6e6f 7474 6f62 656e 6f74  tobeornottobenot
-00000010: 0d0a
+00000000: 546f 2062 652c 206f 7220 6e6f 7420 746f  To be, or not to
+00000010: 2062 652c 2074 6861 7420 6973 2074 6865   be, that is the
+00000020: 2071 7565 7374 696f 6e3a 0a57 6865 7468   question:.Wheth
+00000030: 6572 2027 7469 7320 6e6f 626c 6572 2069  er 'tis nobler i
+00000040: 6e20 7468 6520 6d69 6e64 2074 6f20 7375  n the mind to su
+00000050: 6666 6572 0a54 6865 2073 6c69 6e67 7320  ffer.The slings
+00000060: 616e 6420 6172 726f 7773 206f 6620 6f75  and arrows of ou
+00000070: 7472 6167 656f 7573 2066 6f72 7475 6e65  trageous fortune
+00000080: 2c0d 0a                                  ,..
 
 ```
-Our file is 14 bytes this time, with two bytes at the end as the CLRF indicator. Yes, I am writing this on Windows, since I stopped using WSL recently due to perf issues.
+Our file is 130 bytes this time, with the last two bytes being CRLF. Yes, I am writing this on Windows, since I stopped using WSL recently due to my laptop having *only* 8GB of RAM, which apparently is not enough for Windows these days.
 
 This string is specifically chosen to have some repetitions, so hopefully gzip will pick it up.
-s investigate!
+Since we're on Windows, I used [7zip-zstd](https://github.com/mcmilk/7-Zip-zstd) to compress the gzip file
 
-This time, since we're on Windows, I used [7zip-zstd](https://github.com/mcmilk/7-Zip-zstd) to compress the gzip file
 ```
 $ 7z a -mx9 test-huff.txt.gz .\test-huff.txt
 $ xxd test-huff.txt.gz
-00000000: 1f8b 0808 0428 6465 0200 7465 7374 2d68  .....(de..test-h
-00000010: 7566 662e 7478 7400 2bc9 4f4a cd2f cacb  uff.txt.+.OJ./..
-00000020: 2f01 3180 142f 1700 032b b881 1200 0000  /.1../...+......
+00000000: 1f8b 0808 bb3f 6465 0200 7465 7374 2d68  .....?de..test-h
+00000010: 7566 662e 7478 7400 258a 3b0e c240 1043  uff.txt.%.;..@.C
+00000020: fb95 b883 3b9a 9c80 7344 a2de 88d9 64a5  ....;...sD....d.
+00000030: 3016 f311 d767 442a dbef 7925 3659 4083  0....gD*..y%6Y@.
+00000040: 3210 d78a a307 a657 0a3e 291e 93fa 68cf  2......W.>)...h.
+00000050: 430a 18ee 514a b99d d5a7 fe4f efa9 2f04  C...QJ.....O../.
+00000060: e139 8658 5b0b f939 7577 f412 dd8c 5f07  .9.X[..9uw...._.
+00000070: 0798 617d 17a6 63d0 2255 965b fb01 88d0  ..a}..c."U.[....
+00000080: 82a1 8300 0000                           ......
 ```
 
 ## gzip specific info
@@ -35,7 +49,7 @@ The first few bytes are quite straightforward:
 1. `1f8b` - "magic", hardcoded gzip header
 1. `08` - Signifies DEFLATE compression method
 1. `08(00001000)` - bit 3 is set, so there will be a filename
-1. `0428 6465` - timestamp of UTC 
+1. `bb3f 6465` - timestamp 1701068731, UTC Monday, November 27, 2023 7:05:31 AM
 1. `02` - compressor used slowest compression
 1. `00` - Windows operating system (useful for LF/CLRF)
 
@@ -47,10 +61,11 @@ t  e  s  t  -  h  u  f  f  .  t  x  t  NUL
 
 ## The deflated data
 
-### Seeing the end goal first
-This time, we'll do something different before we start decoding things by hand. Since we'll be decoding with dynamic huffman codes, which can get pretty gnarly, we'll use the [infgen](https://github.com/madler/infgen) program to guide us. Written by the author of DEFLATE himself, Mark Adler, `infgen` will decode the gzip file and tell us what each byte is doing. Thanks to [Rendello on Hacker News](https://news.ycombinator.com/item?id=29337292) for letting me know about this.
+This time, we'll do something different. The file is much bigger at 130 bytes instead of 9 bytes, and we'll be decoding with dynamic huffman codes, which can get pretty gnarly. So, we'll use the [infgen](https://github.com/madler/infgen) program to guide us. Written by the co-author of gzip himself (Mark Adler), `infgen` can decode the gzip file and tell us what each byte is doing. Thanks to [Rendello on Hacker News](https://news.ycombinator.com/item?id=29337292) for letting me know about this.
 
-*Note: infgen requires system provided zlib, which on Windows can be a pain. I had to install MSYS and do gcc ./infgen.c -lz ./infgen*
+*Note: infgen requires system provided zlib, which on Windows can be a pain. I had to install MSYS and use the command gcc ./infgen.c -lz -o ./infgen*
+
+Instead of manually inspecting the bitstream with `xxd` all the time, I'll instead explain what infgen is printing out, section by section. If you want to see me inspecting the bitstream, [I do a detailed explanation for a smaller file in Part 1.](/blog/gzip_investigations)
 
 ```
 $.\infgen.exe -dd .\test-huff.txt.gz
@@ -59,28 +74,25 @@ $.\infgen.exe -dd .\test-huff.txt.gz
 gzip
 !
 last                    ! 1
-fixed                   ! 01
-literal 't              ! 00100101
-literal 'o              ! 11111001
-literal 'b              ! 01001001
-literal 'e              ! 10101001
-literal 'o              ! 11111001
-literal 'r              ! 01000101
-literal 'n              ! 01111001
-literal 'o              ! 11111001
-literal 't              ! 00100101
-match 4 9               ! 00 01100 0100000
-match 3 7               ! 0 10100 1000000
-literal 13              ! 10111100
-literal 10              ! 01011100
-end                     ! 0000000
-                        ! 000
-!
-crc
-length
+dynamic                 ! 10
+count 261 11 16         ! 1100 01010 00100
+code 16 5               ! 101
+code 17 3               ! 011
+code 18 4               ! 100
+code 0 3                ! 011
+code 7 2                ! 010 000
+code 6 3                ! 011 000
+code 5 4                ! 100 000
+code 4 4                ! 100 000
+code 3 3                ! 011 000
+code 2 5                ! 101 000
+[... additional output trimmed. See appendix for the full output]
 ```
 
 ### Diving in
+
+```
+```
 
 
 # OLD OLD OLD OLD OLD
@@ -186,3 +198,241 @@ I found these articles extremely helpful, in no particular order:
 1. [An explanation of the Deflate algorithm, by Antaeus Feldspar](https://zlib.net/feldspar.html)
 1. [gzip + poetry = awesome, by Julia Evans](https://jvns.ca/blog/2013/10/24/day-16-gzip-plus-poetry-equals-awesome/)
 1. [How does gzip work?, by Julia Evans](https://jvns.ca/blog/2013/10/16/day-11-how-does-gzip-work/)
+
+# Full infgen output
+```
+! infgen 3.2 output
+!
+time 1701068731		! [UTC Mon Nov 27 07:05:31 2023]
+xfl 2
+os 0
+name 'test-huff.txt
+gzip
+!
+last			! 1
+dynamic			! 10
+count 261 11 16		! 1100 01010 00100
+code 16 5		! 101
+code 17 3		! 011
+code 18 4		! 100
+code 0 3		! 011
+code 7 2		! 010 000
+code 6 3		! 011 000
+code 5 4		! 100 000
+code 4 4		! 100 000
+code 3 3		! 011 000
+code 2 5		! 101 000
+zeros 10		! 111 101
+lens 5			! 1011
+lens 0			! 010
+lens 0			! 010
+lens 7			! 00
+zeros 18		! 0000111 0111
+lens 3			! 110
+zeros 6			! 011 101
+lens 7			! 00
+zeros 4			! 001 101
+lens 6			! 001
+zeros 13		! 0000010 0111
+lens 7			! 00
+zeros 25		! 0001110 0111
+lens 6			! 001
+lens 0			! 010
+lens 0			! 010
+lens 7			! 00
+zeros 9			! 110 101
+lens 5			! 1011
+lens 6			! 001
+lens 0			! 010
+lens 7			! 00
+lens 4			! 0011
+lens 5			! 1011
+lens 6			! 001
+lens 6			! 001
+lens 5			! 1011
+lens 0			! 010
+lens 0			! 010
+lens 6			! 001
+lens 7			! 00
+lens 4			! 0011
+lens 3			! 110
+lens 0			! 010
+lens 7			! 00
+lens 4			! 0011
+repeat 3		! 00 11111
+lens 0			! 010
+lens 7			! 00
+zeros 136		! 1111101 0111
+lens 7			! 00
+lens 4			! 0011
+lens 0			! 010
+lens 7			! 00
+lens 6			! 001
+zeros 5			! 010 101
+lens 3			! 110
+lens 3			! 110
+lens 3			! 110
+lens 2			! 01111
+lens 2			! 01111
+lens 3			! 110
+! stats table 34:2
+! litlen 10 5
+! litlen 13 7
+! litlen 32 3
+! litlen 39 7
+! litlen 44 6
+! litlen 58 7
+! litlen 84 6
+! litlen 87 7
+! litlen 97 5
+! litlen 98 6
+! litlen 100 7
+! litlen 101 4
+! litlen 102 5
+! litlen 103 6
+! litlen 104 6
+! litlen 105 5
+! litlen 108 6
+! litlen 109 7
+! litlen 110 4
+! litlen 111 3
+! litlen 113 7
+! litlen 114 4
+! litlen 115 4
+! litlen 116 4
+! litlen 117 4
+! litlen 119 7
+! litlen 256 7
+! litlen 257 4
+! litlen 259 7
+! litlen 260 6
+! dist 5 3
+! dist 6 3
+! dist 7 3
+! dist 8 2
+! dist 9 2
+! dist 10 3
+literal 'T		! 101011
+literal 'o		! 100
+literal ' 		! 000
+literal 'b		! 011011
+literal 'e		! 0010
+literal ',		! 001011
+literal ' 		! 000
+literal 'o		! 100
+literal 'r		! 0110
+literal ' 		! 000
+literal 'n		! 1010
+literal 'o		! 100
+literal 't		! 0001
+literal ' 		! 000
+literal 't		! 0001
+match 6 14		! 01 011 010111
+literal 't		! 0001
+literal 'h		! 000111
+literal 'a		! 11101
+literal 't		! 0001
+literal ' 		! 000
+literal 'i		! 10011
+literal 's		! 1110
+match 3 8		! 1 001 0101
+literal 'e		! 0010
+literal ' 		! 000
+literal 'q		! 0011111
+literal 'u		! 1001
+literal 'e		! 0010
+literal 's		! 1110
+literal 't		! 0001
+literal 'i		! 10011
+literal 'o		! 100
+literal 'n		! 1010
+literal ':		! 0001111
+literal 10		! 01101
+literal 'W		! 1001111
+literal 'h		! 000111
+literal 'e		! 0010
+match 3 17		! 000 00 0101
+literal 'r		! 0110
+literal ' 		! 000
+literal ''		! 1110111
+literal 't		! 0001
+match 3 27		! 010 10 0101
+literal 'n		! 1010
+literal 'o		! 100
+literal 'b		! 011011
+literal 'l		! 100111
+match 3 12		! 11 101 0101
+literal 'i		! 10011
+literal 'n		! 1010
+match 5 37		! 0100 111 1111111
+literal 'm		! 1101111
+literal 'i		! 10011
+literal 'n		! 1010
+literal 'd		! 0101111
+literal ' 		! 000
+literal 't		! 0001
+literal 'o		! 100
+literal ' 		! 000
+literal 's		! 1110
+literal 'u		! 1001
+literal 'f		! 00011
+literal 'f		! 00011
+literal 'e		! 0010
+literal 'r		! 0110
+literal 10		! 01101
+literal 'T		! 101011
+match 3 19		! 010 00 0101
+literal 's		! 1110
+literal 'l		! 100111
+literal 'i		! 10011
+literal 'n		! 1010
+literal 'g		! 111011
+literal 's		! 1110
+literal ' 		! 000
+literal 'a		! 11101
+match 3 25		! 000 10 0101
+literal 'a		! 11101
+literal 'r		! 0110
+literal 'r		! 0110
+literal 'o		! 100
+literal 'w		! 1011111
+literal 's		! 1110
+literal ' 		! 000
+literal 'o		! 100
+literal 'f		! 00011
+literal ' 		! 000
+literal 'o		! 100
+literal 'u		! 1001
+literal 't		! 0001
+literal 'r		! 0110
+literal 'a		! 11101
+literal 'g		! 111011
+literal 'e		! 0010
+literal 'o		! 100
+literal 'u		! 1001
+literal 's		! 1110
+literal ' 		! 000
+literal 'f		! 00011
+literal 'o		! 100
+literal 'r		! 0110
+literal 't		! 0001
+literal 'u		! 1001
+literal 'n		! 1010
+literal 'e		! 0010
+literal ',		! 001011
+literal 13		! 0110111
+literal 10		! 01101
+end			! 0111111
+! stats literals 4.4 bits each (448/102)
+! stats matches 22.1% (8 x 3.6)
+! stats inout 101:2 (110) 131 0
+			! 000000
+! stats total inout 101:2 (110) 131
+! stats total block average 131.0 uncompressed
+! stats total block average 110.0 symbols
+! stats total literals 4.4 bits each
+! stats total matches 22.1% (8 x 3.6)
+!
+crc
+length
+```
