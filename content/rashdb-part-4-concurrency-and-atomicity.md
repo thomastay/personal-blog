@@ -1,6 +1,6 @@
 ---
-title: "Rashdb Part 4 Concurrency and Atomicity"
-date: 2023-10-07T11:17:55-07:00
+title: "Rashdb Part 4: Concurrency and Atomicity"
+date: 2023-10-29T17:55:00-07:00
 draft: true
 ---
 

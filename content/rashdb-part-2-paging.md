@@ -80,14 +80,20 @@ In this part, we're **not** going to worry about trees, and interior pages. We'r
 
 (Free space)
 ```
-Here's the breakdown of a single cell:
+Let's go into some more detail about how the Keys and Vals are encoded. At the page level, keys and values are really stored the same way, as an object we call a Cell.
+
+Cells are basically just a byte array, with the length in front. In case we have a key that's bigger than our page size (currently 2kb), we want to be able to store the overflow on some other page too, so each Cell can have an optional 4 bytes at the end that give the page ID of the overflow page.
+
+Since we're storing tabular data, our data is in columns. We store the fields of our keys/values in the column order specified by the CreateTable() function, like so:
 
 ```
 +=====+=======+=======+=======+     +--------------------------+
 + Len + Col 1 + Col 2 + Col 3 + ... + Page ID of overflow page +
 +=====+=======+=======+=======+     +--------------------------+
 ```
-The length of a cell is encoded as a variable length integer, which includes the length of any overflow that spills onto other pages. It doesn't include the 4 bytes used for the page ID, and is really just for the use of overflow. The size of the cell can always be determined by looking at the cell pointer array
+The length of a cell is encoded as a variable length integer, which includes the length of any overflow that spills onto other pages. It doesn't include the 4 bytes used for the page ID, and is really just for the use of overflow. The size of the cell (on disk) is determined entirely by the cell pointer indexes.
+
+This makes it easy to tell if there is an overflow page ID. If the length of the cell doesn't match its size, that means that the cell has overflowed. For now, we'll simply assume that overflow doesn't exist and panic if we try to write an object to DB that's bigger than the page size.
 
 (TODO more explanations)
 
