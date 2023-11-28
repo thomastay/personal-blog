@@ -1,6 +1,6 @@
 --- 
 title: "Decompressing a gzip file by hand (sorta), part 2: Now with Huffman!"
-date: 2023-11-26:03:59-07:00
+date: 2023-11-26T00:03:59-07:00
 draft: true
 ---
 
@@ -8,38 +8,31 @@ Let's decompress a gzip file by hand, just [like we did last time in part 1](/bl
 
 Start by writing some data to disk:
 ```
-$ echo "To be, or not to be, that is the question:
-Whether 'tis nobler in the mind to suffer
-The slings and arrows of outrageous fortune," > test-huff.txt
+$ echo "hector the frantic father on an anchor or a rare fat cat sat on the ranch" > test-huff.txt
 $ xxd test-huff.txt
-00000000: 546f 2062 652c 206f 7220 6e6f 7420 746f  To be, or not to
-00000010: 2062 652c 2074 6861 7420 6973 2074 6865   be, that is the
-00000020: 2071 7565 7374 696f 6e3a 0a57 6865 7468   question:.Wheth
-00000030: 6572 2027 7469 7320 6e6f 626c 6572 2069  er 'tis nobler i
-00000040: 6e20 7468 6520 6d69 6e64 2074 6f20 7375  n the mind to su
-00000050: 6666 6572 0a54 6865 2073 6c69 6e67 7320  ffer.The slings
-00000060: 616e 6420 6172 726f 7773 206f 6620 6f75  and arrows of ou
-00000070: 7472 6167 656f 7573 2066 6f72 7475 6e65  trageous fortune
-00000080: 2c0d 0a                                  ,..
+00000000: 6865 6374 6f72 2074 6865 2066 7261 6e74  hector the frant
+00000010: 6963 2066 6174 6865 7220 6f6e 2061 6e20  ic father on an
+00000020: 616e 6368 6f72 206f 7220 6120 7261 7265  anchor or a rare
+00000030: 2066 6174 2063 6174 2073 6174 206f 6e20   fat cat sat on
+00000040: 7468 6520 7261 6e63 680a                 the ranch.
 
 ```
-Our file is 130 bytes this time, with the last two bytes being CRLF. Yes, I am writing this on Windows, since I stopped using WSL recently due to my laptop having *only* 8GB of RAM, which apparently is not enough for Windows these days.
+Our file is 74 bytes this time, and specifically chosen to use only 12 characters:
 
-This string is specifically chosen to have some repetitions, so hopefully gzip will pick it up.
-Since we're on Windows, I used [7zip-zstd](https://github.com/mcmilk/7-Zip-zstd) to compress the gzip file
+*a, c, e, f, h, i, n, o, r, t*; space (0x20) and Line Feed (0x0a).
+
+This string has a lot of repetitions, so hopefully gzip will pick it up.
+Since I'm on Windows, I used [7zip-zstd](https://github.com/mcmilk/7-Zip-zstd) to compress the gzip file
 
 ```
 $ 7z a -mx9 test-huff.txt.gz .\test-huff.txt
 $ xxd test-huff.txt.gz
-00000000: 1f8b 0808 bb3f 6465 0200 7465 7374 2d68  .....?de..test-h
-00000010: 7566 662e 7478 7400 258a 3b0e c240 1043  uff.txt.%.;..@.C
-00000020: fb95 b883 3b9a 9c80 7344 a2de 88d9 64a5  ....;...sD....d.
-00000030: 3016 f311 d767 442a dbef 7925 3659 4083  0....gD*..y%6Y@.
-00000040: 3210 d78a a307 a657 0a3e 291e 93fa 68cf  2......W.>)...h.
-00000050: 430a 18ee 514a b99d d5a7 fe4f efa9 2f04  C...QJ.....O../.
-00000060: e139 8658 5b0b f939 7577 f412 dd8c 5f07  .9.X[..9uw...._.
-00000070: 0798 617d 17a6 63d0 2255 965b fb01 88d0  ..a}..c."U.[....
-00000080: 82a1 8300 0000                           ......
+00000000: 1f8b 0808 d76f 6565 0200 7465 7374 2d68  .....oee..test-h
+00000010: 7566 662e 7478 7400 158b 410a 0031 0c02  uff.txt...A..1..
+00000020: effb 0abf 2621 257b 69c1 e6ff d480 1e64  ....&!%{i......d
+00000030: c6ca e823 7425 96b8 fb0f 2c7a 0967 8393  ...#t%....,z.g..
+00000040: 2873 8710 9543 11ee 75ad cc51 237d 0fc7  (s...C..u..Q#}..
+00000050: 9797 d64a 0000 00                        ...J...
 ```
 
 ## gzip specific info
@@ -49,9 +42,9 @@ The first few bytes are quite straightforward:
 1. `1f8b` - "magic", hardcoded gzip header
 1. `08` - Signifies DEFLATE compression method
 1. `08(00001000)` - bit 3 is set, so there will be a filename
-1. `bb3f 6465` - timestamp 1701068731, UTC Monday, November 27, 2023 7:05:31 AM
+1. `d76f 6565` - timestamp 1701146583, UTC Tue Nov 28 04:43:03 2023
 1. `02` - compressor used slowest compression
-1. `00` - Windows operating system (useful for LF/CLRF)
+1. `00` - Windows operating system (useful for LF/CLRF). Yes, I am writing this on Windows, since I stopped using WSL recently due to my laptop having *only* 8GB of RAM, which apparently is not enough for Windows these days.
 
 The next few bytes are the filename:
 ```
@@ -59,9 +52,9 @@ The next few bytes are the filename:
 t  e  s  t  -  h  u  f  f  .  t  x  t  NUL
 ```
 
-## The deflated data
+# The deflated data
 
-This time, we'll do something different. The file is much bigger at 130 bytes instead of 9 bytes, and we'll be decoding with dynamic huffman codes, which can get pretty gnarly. So, we'll use the [infgen](https://github.com/madler/infgen) program to guide us. Written by the co-author of gzip himself (Mark Adler), `infgen` can decode the gzip file and tell us what each byte is doing. Thanks to [Rendello on Hacker News](https://news.ycombinator.com/item?id=29337292) for letting me know about this.
+This time, we'll do something different. The file is much bigger at 72 bytes instead of 9 bytes, and we'll be decoding with dynamic huffman codes, which can get pretty gnarly. So, we'll use the [infgen](https://github.com/madler/infgen) program to guide us. Written by the co-author of gzip himself (Mark Adler), `infgen` can decode the gzip file and tell us what each byte is doing. Thanks to [Rendello on Hacker News](https://news.ycombinator.com/item?id=29337292) for letting me know about this.
 
 *Note: infgen requires system provided zlib, which on Windows can be a pain. I had to install MSYS and use the command gcc ./infgen.c -lz -o ./infgen*
 
@@ -75,24 +68,79 @@ gzip
 !
 last                    ! 1
 dynamic                 ! 10
-count 261 11 16         ! 1100 01010 00100
-code 16 5               ! 101
-code 17 3               ! 011
-code 18 4               ! 100
-code 0 3                ! 011
-code 7 2                ! 010 000
-code 6 3                ! 011 000
-code 5 4                ! 100 000
-code 4 4                ! 100 000
-code 3 3                ! 011 000
-code 2 5                ! 101 000
+count 259 12 16         ! 1100 01011 00010
 [... additional output trimmed. See appendix for the full output]
 ```
 
-### Diving in
+The 3 bits of the gzip bitstream tells us that this is the only block in the bitstream, and that it is compressed using dynamic Huffman codes.
 
+We're not going to be inspecting the bitstream too carefully, but just so we're on the same page, this is the bitstream of the DEFLATE data, without the headers, CRC and Length bytes. 
+
+Remember that the bits are packed LSB to MSB, and any integers are interpreted in little endian format (**except Huffman codes, which are packed MSB to LSB**). `xxd` prints bits from MSB to LSB, so you have to read the bitstream backwards. Check part 1 for the details.
 ```
+$ xxd -s 24 -l 55 -b .\test-huff.txt.gz
+00000018: 00010101 10001011 01000001 00001010 00000000 00110001  ..A..1
+0000001e: 00001100 00000010 11101111 11111011 00001010 10111111  ......
+00000024: 00100110 00100001 00100101 01111011 01101001 11000001  &!%{i.
+0000002a: 11100110 11111111 11010100 10000000 00011110 01100100  .....d
+00000030: 11000110 11001010 11101000 00100011 01110100 00100101  ...#t%
+00000036: 10010110 10111000 11111011 00001111 00101100 01111010  ....,z
+0000003c: 00001001 01100111 10000011 10010011 00101000 01110011  .g..(s
+00000042: 10000111 00010000 10010101 01000011 00010001 11101110  ...C..
+00000048: 01110101 10101101 11001100 01010001 00100011 01111101  u..Q#}
+0000004e: 00001111                                               .
 ```
+
+## Starting with Huffman
+Instead of decoding the Huffman table, I think it's more instructive to work backwards. We'll start with the final huffman table, then explain how it's encoded using only lengths. Then, we'll see how the lengths are *themselves* encoded using a Run-length encoding (RLE) scheme, and finally we'll go back to the bitstream 
+
+
+### Huffman table
+
+We intentionally restricted ourselves to 12 characters, let's see how they got encoded. 
+
+*Note that, again, since the Huffman codes are packed MSB to LSB, the output of infgen is actually reversed since it prints LSB to MSB*
+
+| Char | Huffman code | Infgen's output |
+| ---- | --------- | --------------- |
+| `' '` | 000 | 000 |
+| a | 001 | 100 |
+| r | 010 | 010 |
+| c | 1000 | 0001 |
+| e | 1001 | 1001 |
+| h | 1010 | 0101 |
+| t | 1011 | 1101 |
+| f | 11010 | 01011 |
+| n | 11011 | 11011 |
+| o | 11100 | 00111 |
+| '\n' | 111110 | 011111 |
+| i | 111111 | 11111 |
+
+
+The codes (almost) form a beautiful prefix-free huffman code, arranged by the frequency of how often the characters appear in the source. But there are some gaps, because gzip has a neat trick to increase compression, it combines literals and lengths into a single Huffman alphabet.
+This lets it save extra space, instead of encoding literals and lengths with two separate Huffman codes. 
+
+However, for some reason that I don't understand, *distance* is encoded with a separate alphabet. Why this insanity? ¯\\_(ツ)_/¯ ...
+
+The full huffman tree is actually as follows:
+
+| Char | Huffman code | Infgen's output |
+| ---- | --------- | --------------- |
+| `' '` | 000 | 000 |
+| a | 001 | 100 |
+| r | 010 | 010 |
+| **3 (len)** | 011 | 110 |
+| c | 1000 | 0001 |
+| e | 1001 | 1001 |
+| h | 1010 | 0101 |
+| t | 1011 | 1101 |
+| **4 (len)** | 1100 | 0011 |
+| f | 11010 | 01011 |
+| n | 11011 | 11011 |
+| o | 11100 | 00111 |
+| **END** | 11110 | 01111 |
+| '\n' | 111110 | 011111 |
+| i | 111111 | 11111 |
 
 
 # OLD OLD OLD OLD OLD
@@ -184,8 +232,6 @@ Above we see the manual decoding of the code lengths. But it quickly gets tireso
 ```
 
 
-### Footer
-
 If you see any mistakes, [please correct them on Github](https://github.com/thomastay/personal-blog/issues), or email me at `thomastayac`. Google mail.
 
 
@@ -200,10 +246,11 @@ I found these articles extremely helpful, in no particular order:
 1. [How does gzip work?, by Julia Evans](https://jvns.ca/blog/2013/10/16/day-11-how-does-gzip-work/)
 
 # Full infgen output
+
 ```
 ! infgen 3.2 output
 !
-time 1701068731		! [UTC Mon Nov 27 07:05:31 2023]
+time 1701146583		! [UTC Tue Nov 28 04:43:03 2023]
 xfl 2
 os 0
 name 'test-huff.txt
@@ -211,227 +258,135 @@ gzip
 !
 last			! 1
 dynamic			! 10
-count 261 11 16		! 1100 01010 00100
-code 16 5		! 101
-code 17 3		! 011
+count 259 12 16		! 1100 01011 00010
+code 17 4		! 100 000
 code 18 4		! 100
-code 0 3		! 011
-code 7 2		! 010 000
-code 6 3		! 011 000
-code 5 4		! 100 000
-code 4 4		! 100 000
-code 3 3		! 011 000
-code 2 5		! 101 000
-zeros 10		! 111 101
-lens 5			! 1011
-lens 0			! 010
-lens 0			! 010
-lens 7			! 00
-zeros 18		! 0000111 0111
-lens 3			! 110
-zeros 6			! 011 101
-lens 7			! 00
-zeros 4			! 001 101
-lens 6			! 001
-zeros 13		! 0000010 0111
-lens 7			! 00
-zeros 25		! 0001110 0111
-lens 6			! 001
-lens 0			! 010
-lens 0			! 010
-lens 7			! 00
-zeros 9			! 110 101
-lens 5			! 1011
-lens 6			! 001
-lens 0			! 010
-lens 7			! 00
-lens 4			! 0011
-lens 5			! 1011
-lens 6			! 001
-lens 6			! 001
-lens 5			! 1011
-lens 0			! 010
-lens 0			! 010
-lens 6			! 001
-lens 7			! 00
-lens 4			! 0011
-lens 3			! 110
-lens 0			! 010
-lens 7			! 00
-lens 4			! 0011
-repeat 3		! 00 11111
-lens 0			! 010
-lens 7			! 00
-zeros 136		! 1111101 0111
-lens 7			! 00
-lens 4			! 0011
-lens 0			! 010
-lens 7			! 00
-lens 6			! 001
-zeros 5			! 010 101
-lens 3			! 110
-lens 3			! 110
-lens 3			! 110
-lens 2			! 01111
-lens 2			! 01111
-lens 3			! 110
-! stats table 34:2
-! litlen 10 5
-! litlen 13 7
+code 0 2		! 010
+code 6 4		! 100 000 000 000
+code 5 3		! 011 000
+code 4 3		! 011 000
+code 3 2		! 010 000
+code 2 4		! 100 000
+zeros 10		! 111 0111
+lens 6			! 1011
+zeros 21		! 0001010 1111
+lens 3			! 10
+zeros 64		! 0110101 1111
+lens 3			! 10
+lens 0			! 00
+lens 4			! 001
+lens 0			! 00
+lens 4			! 001
+lens 5			! 101
+lens 0			! 00
+lens 4			! 001
+lens 6			! 1011
+zeros 4			! 001 0111
+lens 5			! 101
+lens 5			! 101
+lens 0			! 00
+lens 0			! 00
+lens 3			! 10
+lens 5			! 101
+lens 4			! 001
+zeros 138		! 1111111 1111
+lens 0			! 00
+lens 5			! 101
+lens 3			! 10
+lens 4			! 001
+lens 0			! 00
+lens 0			! 00
+lens 3			! 10
+lens 3			! 10
+zeros 3			! 000 0111
+lens 3			! 10
+lens 0			! 00
+lens 2			! 0011
+lens 2			! 0011
+lens 3			! 10
+! stats table 24:4
+! litlen 10 6
 ! litlen 32 3
-! litlen 39 7
-! litlen 44 6
-! litlen 58 7
-! litlen 84 6
-! litlen 87 7
-! litlen 97 5
-! litlen 98 6
-! litlen 100 7
+! litlen 97 3
+! litlen 99 4
 ! litlen 101 4
 ! litlen 102 5
-! litlen 103 6
-! litlen 104 6
-! litlen 105 5
-! litlen 108 6
-! litlen 109 7
-! litlen 110 4
-! litlen 111 3
-! litlen 113 7
-! litlen 114 4
-! litlen 115 4
+! litlen 104 4
+! litlen 105 6
+! litlen 110 5
+! litlen 111 5
+! litlen 114 3
+! litlen 115 5
 ! litlen 116 4
-! litlen 117 4
-! litlen 119 7
-! litlen 256 7
-! litlen 257 4
-! litlen 259 7
-! litlen 260 6
-! dist 5 3
-! dist 6 3
+! litlen 256 5
+! litlen 257 3
+! litlen 258 4
+! dist 2 3
+! dist 3 3
 ! dist 7 3
-! dist 8 2
 ! dist 9 2
-! dist 10 3
-literal 'T		! 101011
-literal 'o		! 100
+! dist 10 2
+! dist 11 3
+literal 'h		! 0101
+literal 'e		! 1001
+literal 'c		! 0001
+literal 't		! 1101
+literal 'o		! 00111
+literal 'r		! 010
 literal ' 		! 000
-literal 'b		! 011011
-literal 'e		! 0010
-literal ',		! 001011
+literal 't		! 1101
+literal 'h		! 0101
+literal 'e		! 1001
 literal ' 		! 000
-literal 'o		! 100
-literal 'r		! 0110
+literal 'f		! 01011
+literal 'r		! 010
+literal 'a		! 100
+literal 'n		! 11011
+literal 't		! 1101
+literal 'i		! 111111
+literal 'c		! 0001
 literal ' 		! 000
-literal 'n		! 1010
-literal 'o		! 100
-literal 't		! 0001
+literal 'f		! 01011
+literal 'a		! 100
+match 3 14		! 01 011 110
+literal 'r		! 010
 literal ' 		! 000
-literal 't		! 0001
-match 6 14		! 01 011 010111
-literal 't		! 0001
-literal 'h		! 000111
-literal 'a		! 11101
-literal 't		! 0001
+literal 'o		! 00111
+literal 'n		! 11011
 literal ' 		! 000
-literal 'i		! 10011
-literal 's		! 1110
-match 3 8		! 1 001 0101
-literal 'e		! 0010
+literal 'a		! 100
+match 4 3		! 001 0011
+literal 'c		! 0001
+literal 'h		! 0101
+match 3 32		! 111 00 110
+match 3 3		! 001 110
+literal 'a		! 100
 literal ' 		! 000
-literal 'q		! 0011111
-literal 'u		! 1001
-literal 'e		! 0010
-literal 's		! 1110
-literal 't		! 0001
-literal 'i		! 10011
-literal 'o		! 100
-literal 'n		! 1010
-literal ':		! 0001111
-literal 10		! 01101
-literal 'W		! 1001111
-literal 'h		! 000111
-literal 'e		! 0010
-match 3 17		! 000 00 0101
-literal 'r		! 0110
+literal 'r		! 010
+literal 'a		! 100
+literal 'r		! 010
+literal 'e		! 1001
+match 4 30		! 101 00 0011
 literal ' 		! 000
-literal ''		! 1110111
-literal 't		! 0001
-match 3 27		! 010 10 0101
-literal 'n		! 1010
-literal 'o		! 100
-literal 'b		! 011011
-literal 'l		! 100111
-match 3 12		! 11 101 0101
-literal 'i		! 10011
-literal 'n		! 1010
-match 5 37		! 0100 111 1111111
-literal 'm		! 1101111
-literal 'i		! 10011
-literal 'n		! 1010
-literal 'd		! 0101111
-literal ' 		! 000
-literal 't		! 0001
-literal 'o		! 100
-literal ' 		! 000
-literal 's		! 1110
-literal 'u		! 1001
-literal 'f		! 00011
-literal 'f		! 00011
-literal 'e		! 0010
-literal 'r		! 0110
-literal 10		! 01101
-literal 'T		! 101011
-match 3 19		! 010 00 0101
-literal 's		! 1110
-literal 'l		! 100111
-literal 'i		! 10011
-literal 'n		! 1010
-literal 'g		! 111011
-literal 's		! 1110
-literal ' 		! 000
-literal 'a		! 11101
-match 3 25		! 000 10 0101
-literal 'a		! 11101
-literal 'r		! 0110
-literal 'r		! 0110
-literal 'o		! 100
-literal 'w		! 1011111
-literal 's		! 1110
-literal ' 		! 000
-literal 'o		! 100
-literal 'f		! 00011
-literal ' 		! 000
-literal 'o		! 100
-literal 'u		! 1001
-literal 't		! 0001
-literal 'r		! 0110
-literal 'a		! 11101
-literal 'g		! 111011
-literal 'e		! 0010
-literal 'o		! 100
-literal 'u		! 1001
-literal 's		! 1110
-literal ' 		! 000
-literal 'f		! 00011
-literal 'o		! 100
-literal 'r		! 0110
-literal 't		! 0001
-literal 'u		! 1001
-literal 'n		! 1010
-literal 'e		! 0010
-literal ',		! 001011
-literal 13		! 0110111
-literal 10		! 01101
-end			! 0111111
-! stats literals 4.4 bits each (448/102)
-! stats matches 22.1% (8 x 3.6)
-! stats inout 101:2 (110) 131 0
-			! 000000
-! stats total inout 101:2 (110) 131
-! stats total block average 131.0 uncompressed
-! stats total block average 110.0 symbols
-! stats total literals 4.4 bits each
-! stats total matches 22.1% (8 x 3.6)
+literal 'c		! 0001
+match 3 4		! 101 110
+literal 's		! 10111
+match 3 4		! 101 110
+match 3 35		! 0010 10 110
+match 4 57		! 1000 111 0011
+literal 'r		! 010
+match 4 37		! 0100 10 0011
+literal 10		! 011111
+end			! 01111
+! stats literals 3.8 bits each (153/40)
+! stats matches 45.9% (10 x 3.4)
+! stats inout 54:5 (50) 74 0
+			! 000
+! stats total inout 54:5 (50) 74
+! stats total block average 74.0 uncompressed
+! stats total block average 50.0 symbols
+! stats total literals 3.8 bits each
+! stats total matches 45.9% (10 x 3.4)
 !
 crc
 length
