@@ -17,9 +17,9 @@ $ xxd test-huff.txt
 00000040: 7468 6520 7261 6e63 680a                 the ranch.
 
 ```
-Our file is 74 bytes this time, and specifically chosen to use only 12 characters:
+Our file is 74 bytes this time, and specifically chosen to use only 13 characters:
 
-*a, c, e, f, h, i, n, o, r, t*; space (0x20) and Line Feed (0x0a).
+*a, c, e, f, h, i, n, o, r, s, t*; space (0x20) and Line Feed (0x0a).
 
 This string has a lot of repetitions, so hopefully gzip will pick it up.
 Since I'm on Windows, I used [7zip-zstd](https://github.com/mcmilk/7-Zip-zstd) to compress the gzip file
@@ -97,7 +97,7 @@ Instead of decoding the Huffman table, I think it's more instructive to work bac
 
 ### Huffman table
 
-We intentionally restricted ourselves to 12 characters, let's see how they got encoded. 
+We intentionally restricted ourselves to 13 characters, let's see how they got encoded. 
 
 *Note that, again, since the Huffman codes are packed MSB to LSB, the output of infgen is actually reversed since it prints LSB to MSB*
 
@@ -113,6 +113,7 @@ We intentionally restricted ourselves to 12 characters, let's see how they got e
 | f | 11010 | 01011 |
 | n | 11011 | 11011 |
 | o | 11100 | 00111 |
+| s | 11101 | 10111|
 | '\n' | 111110 | 011111 |
 | i | 111111 | 11111 |
 
@@ -122,7 +123,7 @@ This lets it save extra space, instead of encoding literals and lengths with two
 
 However, for some reason that I don't understand, *distance* is encoded with a separate alphabet. Why this insanity? ¯\\_(ツ)_/¯ ...
 
-The full huffman tree is actually as follows:
+The full len/lit huffman tree is actually as follows:
 
 | Char | Huffman code | Infgen's output |
 | ---- | --------- | --------------- |
@@ -138,10 +139,10 @@ The full huffman tree is actually as follows:
 | f | 11010 | 01011 |
 | n | 11011 | 11011 |
 | o | 11100 | 00111 |
+| s | 11101 | 10111|
 | **END** | 11110 | 01111 |
 | '\n' | 111110 | 011111 |
 | i | 111111 | 11111 |
-
 
 # OLD OLD OLD OLD OLD
 
