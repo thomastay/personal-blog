@@ -118,7 +118,7 @@ We intentionally restricted ourselves to 13 characters, let's see how they got e
 | i | 111111 | 11111 |
 
 
-The codes (almost) form a beautiful prefix-free huffman code, arranged by the frequency of how often the characters appear in the source. But there are some gaps, because gzip has a neat trick to increase compression, it combines literals and lengths into a single Huffman alphabet.
+The codes (almost) form a beautiful prefix-free huffman code, arranged by the frequency of how often the characters appear in the source. But there are some gaps, because gzip has a neat trick to increase compression - it combines literals and lengths into a single Huffman alphabet.
 This lets it save extra space, instead of encoding literals and lengths with two separate Huffman codes. 
 
 However, for some reason that I don't understand, *distance* is encoded with a separate alphabet. Why this insanity? ¯\\_(ツ)_/¯ ...
@@ -144,94 +144,40 @@ The full len/lit huffman tree is actually as follows:
 | '\n' | 111110 | 011111 |
 | i | 111111 | 11111 |
 
-# OLD OLD OLD OLD OLD
+### Canonicalizing the huffman code
 
-Let's look at the first 12 bytes:
+Notice that since we wrote the Huffman code in ascending order, there's really no need for us to specify exactly what the bits are. If we just knew the length of each character's huffman code, we could reconstitute the Huffman code exactly.
+
+Consider the length 3 characters, *space, a, r, 3*. They are arranged in alphabetical (ascii) order, and they go from 000-011.
+The length 4 characters, *c, e, h, t*, are similarly in alphabetical order, and start at 1000 to 1011.
+
+This technique is called [Canonical Huffman coding](https://en.wikipedia.org/wiki/Canonical_Huffman_code), and it's an insanely cool trick to represent Huffman codes. Basically every single huffman encoding, even in other compression formats, is like this, so take some time to read the linked Wikipedia article if this doesn't make sense.
+
+So we can represent our Huffman code like this:
+| Char | Huffman code | Code Length |
+| ---- | --------- | --------------- |
+| `' '` | 000 | 3 |
+| a | 001 | 3 |
+| r | 010 | 3 |
+| **3 (len)** | 011 | 3 |
+| c | 1000 | 4 |
+| e | 1001 | 4 |
+| h | 1010 | 4 |
+| t | 1011 | 4 |
+| **4 (len)** | 1100 | 4 |
+| f | 11010 | 5 |
+| n | 11011 | 5 |
+| o | 11100 | 5 |
+| s | 11101 | 5|
+| **END** | 11110 | 5 |
+| '\n' | 111110 | 6 |
+| i | 111111 | 6 |
+
+And when encoding, it, we can just leave out the Huffman code - the code length will tell us how to get the Huffman code back.
+The len/lit alphabet goes from 0 to 258, so we could represent our huffman code as a fixed-length array like this:
 ```
-1 01 11010 01110 0011
-
-00011000111000001000011000011000011000010100010111011110011100101000011111000000
-
-16 HCLEN:
-
-000 110 001 110 000 010 000 110
- 16  17  18  0   8   7   9   6
-
-000 110 000 110 000 101 000 101
- 10  5   11  4   12  3   13  2
-
-
+TODO
 ```
-## Block header
-1 - Final block
-
-10 - Dynamic huffman codes (yay)
-
-
-HLIT: 01011 = 11 + 257 = 269
-
-HDIST: 01110 = 14 + 1 = 15
-
-HCLEN: 1100 = 12 + 4 = 16
-
-## Decoding the huffman table's huffman table
-
-So there are going to be 16 Code lengths coming up. These will be in 5 bit increments and are to be read in little endian order.
-
-- 16: 0
-- 17: 3
-- 18: 4
-- 0: 3
-- 7: 2
-- 9: 0
-- 6: 3
-- 10: 0
-- 5: 3
-- 11: 0
-- 4: 3
-- 12: 0
-- 3: 5
-- 13: 0
-- 2: 5
-
-This makes the huffman table:
-- 7: 00
-- 0: 010
-- 4: 011
-- 5: 100
-- 6: 101
-- 17: 110
-- 18: 1110
-- 2: 11110
-- 3: 11111
-
-## Decoding the actual huffman table
-
-
-```
-110      111  100 1110     0101000   011 1110     000000    ...
-17       7    5   18         10      4   18         0       ...
-rpt 0   10x      repeat 0  21 times      repeat 0 11 times  ...
-```
-
-Next, up we have exactly 269 literal code lenths for the literal/length alphabet, which come huffman decoded.
-
-Above we see the manual decoding of the code lengths. But it quickly gets tiresome, so let's write some code to automate this.
-
-```clojure
-(defn pad-right [v len pad-val] (vec (concat v (repeat (- len (count v)) pad-val))))
-; user=> (pad-right lenlens (count order) 0)
-; [0 3 4 3 2 0 3 0 3 0 3 0 5 0 5 0 0 0 0]
-
-(def lenlen [0 3 4 3 2 0 3 0 3 0 3 0 5 0 5])
-(def order [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15])
-(def lenlens (sort-by first (map vector order (pad-right lenlen (count order) 0))))
-; ([0 3] [1 0] [2 0] [3 0] [4 0] [5 0] [6 0] [7 0] [8 2] [9 3] [10 3] [11 3] [12 5] [13 5] [14 0] [15 0] [16 0] [17 3] [18 4])
-
-;; Sort the items in order of the code lengths, then assign an incrementing number to each of them.
-
-```
-
 
 If you see any mistakes, [please correct them on Github](https://github.com/thomastay/personal-blog/issues), or email me at `thomastayac`. Google mail.
 
