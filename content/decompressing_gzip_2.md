@@ -58,7 +58,7 @@ This time, we'll do something different. The file is much bigger at 72 bytes ins
 
 *Note: infgen requires system provided zlib, which on Windows can be a pain. I had to install MSYS and use the command gcc ./infgen.c -lz -o ./infgen*
 
-Instead of manually inspecting the bitstream with `xxd` all the time, I'll instead explain what infgen is printing out, section by section. If you want to see me inspecting the bitstream, [I do a detailed explanation for a smaller file in Part 1.](/blog/gzip_investigations)
+Instead of manually inspecting the bitstream with `xxd` all the time, I'll instead use infgen as a solution manual, to decode the text in reverse. If you want to see me inspecting the bitstream, [I do a detailed explanation for a smaller file in Part 1.](/blog/gzip_investigations)
 
 ```
 $.\infgen.exe -dd .\test-huff.txt.gz
@@ -92,7 +92,7 @@ $ xxd -s 24 -l 55 -b .\test-huff.txt.gz
 ```
 
 ## Starting with Huffman
-Instead of decoding the Huffman table, I think it's more instructive to work backwards. We'll start with the final huffman table, then explain how it's encoded using only lengths. Then, we'll see how the lengths are *themselves* encoded using a Run-length encoding (RLE) scheme, and finally we'll go back to the bitstream 
+Instead of decoding the Huffman table, I think it's more instructive to work backwards. We'll start with the final huffman table, then explain how it's encoded using only lengths. Then, we'll see how the lengths are *themselves* encoded using a Run-length encoding (RLE) scheme, which is itself Huffman coded.
 
 
 ### Huffman table
@@ -120,6 +120,8 @@ We intentionally restricted ourselves to 13 characters, let's see how they got e
 
 The codes (almost) form a beautiful prefix-free huffman code, arranged by the frequency of how often the characters appear in the source. But there are some gaps, because gzip has a neat trick to increase compression - it combines literals and lengths into a single Huffman alphabet.
 This lets it save extra space, instead of encoding literals and lengths with two separate Huffman codes. 
+
+*Lengths refers to the match lengths, i.e. look backwards N steps. Don't worry, we'll go through it later*
 
 However, for some reason that I don't understand, *distance* is encoded with a separate alphabet. Why this insanity? ¯\\_(ツ)_/¯ ...
 
@@ -174,10 +176,111 @@ So we can represent our Huffman code like this:
 | i | 111111 | 6 |
 
 And when encoding, it, we can just leave out the Huffman code - the code length will tell us how to get the Huffman code back.
-The len/lit alphabet goes from 0 to 258, so we could represent our huffman code as a fixed-length array like this:
+The len/lit alphabet goes from 0 to 285, so we could represent our huffman code as a length 286 array like this:
 ```
-TODO
+0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,3,0,4,0,4,5,0,4,6,0,0,0,0,5,5,0,0,3,5,4,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+5,3,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 ```
+But this would be incredibly wasteful. Just look at all those zeroes in the middle, begging to get run-length encoded. And so that's what we'll do.
+We'd like some kind of RLE encoding that gives just a number of zeroes, then the codelengths. 1-2 zeroes would be encoded normally. Something like this:
+```
+zeros 10, codelengths 6,
+zeros 21, codelengths 3,
+zeros 64, codelengths 3 0 4 0 4 5 0 4 6,
+zeros 4, codelengths 5 5 0 0 3 5 4,
+zeros 138, codelengths 0 5 3 4 0 0 3 3,
+zeros 3, codelengths 3 0 2 2 3
+```
+
+I'm sure you won't be surprised to hear that gzip does this exact encoding to shrink down the codelengths. In this encoding:
+- the code 0 through 15 represents the codelength itself. Note that this means the maximum codelength of the len/lit huffman code is 15.
+- 17 and 18 are used to represent short and long stretches of zeroes respectively, with a fixed number of extra bits afterwards to indicate the number of zeroes
+- 16 is for repetitions of the previous element.
+
+Let's take an example of this. We'd represent our code above like this:
+```
+17 [10] 6
+18 [21] 3
+18 [64] 3 0 4 0 4 5 0 4 6
+17 [4] 5 5 0 0 3 5 4
+18 [138] 0 5 3 4 0 0 3 3
+17 [3] 3 0 2 2 3
+```
+*The numbers in brackets are fixed length ints, and are not part of the codelengths*
+
+The last thing to specify is how we should represent the codes 0-18. A naive implementation would be to represent them as fixed 5 bit numbers, but notice that in our sample above, some codes occur more frequently than others. Wouldn't it be nice to compress those more frequent codes into a shorter number of bits? Oh wait, that's exactly what a Huffman code is, and we've already written all the machinery to wrangle Huffman codes.
+
+So, gzip represents the codes 0-18 using a second round of Huffman codes. In our example, here's the Huffman table for the codelengths:
+
+
+| Code | Huffman code | Code Length |
+| ---- | --------- | --------------- |
+| 0 | 00 | 2 |
+| 3 | 01 | 2|
+| 4 | 100 | 3|
+| 5 | 101 | 3|
+| 2 | 1100 | 4|
+| 6  | 1101 |4|
+| 17 | 1110 | 4 |
+| 18 | 1111 | 4 |
+
+These second-round code lengths (code lengths of code lengths) are then encoded as fixed 3 bit integers, and laid out in a fixed 16 element array.
+```
+2,0,4,2,3,3,4,0
+0,0,0,0,0,0,0,0
+0,4,4
+```
+
+Or they *would* be, if the author of gzip hadn't pulled *another* trick. You see, the higher code lengths like 10-15 are quite likely to be zeroes, and so are the shorter code lengths like 1 and 2. So, gzip "guesses" the expected frequency of codelengths, and arranges the codelengths in the order **16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15**. Then, it encodes the length of the nonzero part of the array, and drops any trailing zeroes.
+
+This order, which is totally mystifying when you read it in the gzip spec, makes total sense once you think about how likely it is that a particular codelength shows up.
+
+So our codelengths would instead be encoded in this order:
+
+```
+0,4,4,2,0,0,0,4
+0,3,0,3,0,2,0,4
+0,0,0
+```
+The non-zero length of the array is 16 since the last 3 elements are zeroes, so we can just drop the last 3 elements and get this bit-level encoding:
+```
+000 100 100 010 000 000 000 100
+000 011 000 011 000 010 000 100
+```
+
+Since these are **not** themselves Huffman codes, but rather fixed length 3 bit integers, they are packed LSB to MSB just like every other data entity. This point is a bit confusing but that's how it works I guess.
+There are 17 bits before this, which specify lengths. So our 48 bits will be packed like this, with **x** representing the spillover bit from the bits before:
+
+```
+0100000x 00001010 00000000 00110001 00001100 00000010 1
+```
+And here it is!
+
+```
+00000018: 00010101 10001011 01000001 00001010 00000000 00110001  ..A..1
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+0000001e: 00001100 00000010 11101111 11111011 00001010 10111111  ......
+          ^^^^^^^^ ^^^^^^^^ ^
+00000024: 00100110 00100001 00100101 01111011 01101001 11000001  &!%{i.
+0000002a: 11100110 11111111 11010100 10000000 00011110 01100100  .....d
+00000030: 11000110 11001010 11101000 00100011 01110100 00100101  ...#t%
+00000036: 10010110 10111000 11111011 00001111 00101100 01111010  ....,z
+0000003c: 00001001 01100111 10000011 10010011 00101000 01110011  .g..(s
+00000042: 10000111 00010000 10010101 01000011 00010001 11101110  ...C..
+00000048: 01110101 10101101 11001100 01010001 00100011 01111101  u..Q#}
+0000004e: 00001111                                               .
+```
+
+Phew!
+
+### Follow ups
 
 If you see any mistakes, [please correct them on Github](https://github.com/thomastay/personal-blog/issues), or email me at `thomastayac`. Google mail.
 
