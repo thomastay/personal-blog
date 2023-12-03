@@ -284,20 +284,23 @@ Phew 😅!
 
 The process above is completely reversible, so it is left as an exercise to the reader to reverse it on their own 😉
 
-Let's jump ahead to actually decompressing the Huffman codes, since that's more instructive.
+Let's jump ahead to actually decompressing the Huffman codes, since that's more instructive. As a reminder, here's the bitstream, with the first line of the compressed data section marked out. It continues to the end.
 
 ```
 00000018: 00010101 10001011 01000001 00001010 00000000 00110001  ..A..1
 0000001e: 00001100 00000010 11101111 11111011 00001010 10111111  ......
+00000024: 00100110 00100001 00100101 01111011 01101001 11000001  &!%{i.
+0000002a: 11100110 11111111 11010100 10000000 00011110 01100100  .....d
 00000030: 11000110 11001010 11101000 00100011 01110100 00100101  ...#t%
-                                              ^^       ^^^^^^^^
-   (the marked bits above and the rest below comprise the encoded data)
+          ^        ^^^^^^^^ ^^^^^^^^ ^^^^^^^^ ^^^^^^^^ ^^^^^^^^ 
 00000036: 10010110 10111000 11111011 00001111 00101100 01111010  ....,z
 0000003c: 00001001 01100111 10000011 10010011 00101000 01110011  .g..(s
 00000042: 10000111 00010000 10010101 01000011 00010001 11101110  ...C..
 00000048: 01110101 10101101 11001100 01010001 00100011 01111101  u..Q#}
 0000004e: 00001111                                               .
 ```
+
+Here's the first section, decoded:
 
 ```
 0101 1001 0001 1101 00111 010 000 1101 0101 1001 000
@@ -311,7 +314,7 @@ MATCH 3 14 (the)
 ```
 *We're using infgen's output, which prints Huffman codes in reverse to make it easier to spot in the bitstream. If you want to match it with the Huffman codes we saw earlier, reverse the bits here.*
 
-Let's zoom in on the first MATCH statement. The **110** (reversed) represents the Length/Lit code of 257. Since literals are only from 0-255, this is a Length code, and it represents a match of length 3. How far back do we have to look? Well, the next code that comes up is the distance code, which is also Huffman coded. We didn't decode it, but here is the distance code table:
+Let's zoom in on the first MATCH statement. The **110** represents the Length/Lit code of 257. Since literals are only from 0-255, this is a Length code, and it represents a match of length 3. How far back do we have to look? Well, the next code that comes up is the distance code, which is also Huffman coded. We didn't decode it, but here is the distance code table:
 
 | Code  | Dist |  Extra bits |Huffman code | Infgen's output |
 | ----  | -----| --------- | --------------- | ---- |
@@ -370,11 +373,11 @@ Some observations:
 1. Notice how by the end, gzip has completely compressed out all the space characters.
 1. The compression starts out fairly poor, and gradually gets better. This is true of all LZ77 based encodings.
     1. Despite this fact, as the length of the string approaches infinity, LZ77 becomes an optimal encoding.
-1. We achieved 74% compression, ignoring the gzip headers and checksums. Here's a breakdown:
+1. We achieved 74% compression, ignoring the gzip headers and checksums. Here's a breakdown by bytes:
 
 - Uncompressed: 74
 - DEFLATE data: 55 (74%)
-- Compressed data: 26.25 (35%)
+- Compressed data: 30.125
 - Block header: 2.125
 - RLE table: 6
 - LenLit table: 13.125
