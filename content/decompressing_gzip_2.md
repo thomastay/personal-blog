@@ -194,8 +194,8 @@ zeros 10, codelengths 6,
 zeros 21, codelengths 3,
 zeros 64, codelengths 3 0 4 0 4 5 0 4 6,
 zeros 4, codelengths 5 5 0 0 3 5 4,
-zeros 138, codelengths 0 5 3 4 0 0 3 3,
-zeros 3, codelengths 3 0 2 2 3
+zeros 138, codelengths 0 5 3 4
+rest zeroes
 ```
 
 I'm sure you won't be surprised to hear that gzip does this exact encoding to shrink down the codelengths. In this encoding:
@@ -372,13 +372,13 @@ Some observations:
     1. Despite this fact, as the length of the string approaches infinity, LZ77 becomes an optimal encoding.
 1. We achieved 74% compression, ignoring the gzip headers and checksums. Here's a breakdown:
 
-- Uncompressed: 74 bytes
-- DEFLATE data: 55 bytes (74%)
-- Compressed data: 26.25 bytes (35%)
-- Block header: 2.125 bytes
-- RLE table: 6 bytes
-- LenLit table: 
-- Distance: 
+- Uncompressed: 74
+- DEFLATE data: 55 (74%)
+- Compressed data: 26.25 (35%)
+- Block header: 2.125
+- RLE table: 6
+- LenLit table: 13.125
+- Distance: 3.625
 
 ### Follow ups
 
