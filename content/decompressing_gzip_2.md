@@ -367,7 +367,7 @@ MATCH 4 57 (the ) r   MATCH 4 37 (anch)
 LF     END
 ```
 
-## Summary
+## Final notes
 Wasn't that cool?
 Some observations:
 1. Notice how by the end, gzip has completely compressed out all the space characters.
@@ -376,19 +376,38 @@ Some observations:
 1. We achieved 74% compression, ignoring the gzip headers and checksums. Here's a breakdown by bytes:
 
 - Uncompressed: 74
-- DEFLATE data: 55 (74%)
-- Compressed data: 30.125
-- Block header: 2.125
-- RLE table: 6
-- LenLit table: 13.125
-- Distance: 3.625
+- DEFLATE data: 55 (74% compression)
+  - Block header: 2.125 [17 bits]
+  - RLE table: 6 [48 bits]
+  - LenLit table: 13.125 [105 bits]
+  - Distance: 3.625 [29 bits]
+  - Compressed data: 30.125 [241 bits]
 
-### Follow ups
+4. Although not mentioned, generating the Huffman table from the source text is done through the textbook algorithm, using the frequency distribution over all the symbols.
+1. Note that at no point have we covered the way compression is done. This is because gzip and DEFLATE are actually compression-agnostic formats. That means - you could make a better gzip compressor, if you tried!
+
+# Summary
+What a ride! We've gone over how Huffman codes are packed and folded into a miniscule amount of bits, with two rounds of Huffman encoding. At this point, you should be well able to do the decoding yourself, since the decoding process is just the encoding process but in reverse. If you ever get stuck, the answers are all in the infgen output.
+
+We then used the Huffman codes we "decoded" to fully decode the compressed output, and explained how match lengths work.
+
+
+## Follow ups
+
+1. I still don't understand the format of infgen's stats table.
+1. I hope to do a follow up at some point on how gzip figures out the matches. However, this departs from the realm of nicely documented specs, and into implementation notes, comments, and source code itself.
+1. I also want to extend this series to LZ4 decompression, which I think is a criminally underappreciated compression library
+1. I probably *wont* do zstd for now, since I still have yet to understand tANS encoding, and why it's needed. From the simple example we just did, the match table didn't seem that big, and zstd only uses tANS for match codes. It still uses Huffman for literal codes. So I don't get how this really improves compression.
 
 If you see any mistakes, [please correct them on Github](https://github.com/thomastay/personal-blog/issues), or email me at `thomastayac`. Google mail.
 
+## Personal ramble
+Thanks so much for reading this far, I really appreciate it. Part 1 was written two years ago, and I've been wanting to write Part 2 for the longest time. During this time, my college girlfriend of 5 years moved in with me, which was one of the happiest times of my life. Sadly, no good things are meant to last, and we broke up earlier this year in March. 
 
-# References
+I guess writing this part 2 has been part of my healing process, coming back to the things I love the most (the nuts and bolts of coding) and trying to discover who I was before I met her. So thanks for being with me on this journey.
+
+
+## References
 I found these articles extremely helpful, in no particular order:
 1. [The official deflate spec](https://datatracker.ietf.org/doc/html/rfc1951)
 1. [The official gzip spec](https://datatracker.ietf.org/doc/html/rfc1952)
@@ -398,7 +417,7 @@ I found these articles extremely helpful, in no particular order:
 1. [gzip + poetry = awesome, by Julia Evans](https://jvns.ca/blog/2013/10/24/day-16-gzip-plus-poetry-equals-awesome/)
 1. [How does gzip work?, by Julia Evans](https://jvns.ca/blog/2013/10/16/day-11-how-does-gzip-work/)
 
-# Full infgen output
+# Appendix A - Full infgen output
 
 ```
 ! infgen 3.2 output
