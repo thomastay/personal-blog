@@ -291,7 +291,7 @@ Let's jump ahead to actually decompressing the Huffman codes, since that's more 
 0000001e: 00001100 00000010 11101111 11111011 00001010 10111111  ......
 00000030: 11000110 11001010 11101000 00100011 01110100 00100101  ...#t%
                                               ^^       ^^^^^^^^
-   (the marked bits above and all those below comprise the encoded data)
+   (the marked bits above and the rest below comprise the encoded data)
 00000036: 10010110 10111000 11111011 00001111 00101100 01111010  ....,z
 0000003c: 00001001 01100111 10000011 10010011 00101000 01110011  .g..(s
 00000042: 10000111 00010000 10010101 01000011 00010001 11101110  ...C..
@@ -307,9 +307,9 @@ h    e    c    t    o     r   ' '   t    h  e    ' '
 f     r   a   n     t    i      c    ' ' f     a   
 
 01 011 110
-MATCH 3 14
+MATCH 3 14 (the)
 ```
-We're using infgen's output, which prints Huffman codes in reverse to make it easier to spot in the bitstream. If you want to match it with the Huffman codes we saw earlier, reverse the bits here.
+*We're using infgen's output, which prints Huffman codes in reverse to make it easier to spot in the bitstream. If you want to match it with the Huffman codes we saw earlier, reverse the bits here.*
 
 Let's zoom in on the first MATCH statement. The **110** (reversed) represents the Length/Lit code of 257. Since literals are only from 0-255, this is a Length code, and it represents a match of length 3. How far back do we have to look? Well, the next code that comes up is the distance code, which is also Huffman coded. We didn't decode it, but here is the distance code table:
 
@@ -322,127 +322,63 @@ Let's zoom in on the first MATCH statement. The **110** (reversed) represents th
 | 7     | 13- 16| 2| 110 | 011 |
 | 11     | 49-64| 4| 111 | 111 |
 
-### Follow ups
+The distance codes don't all represent the distance exactly, instead they represent a range of distances and there are extra bits encoded afterwards that specify which distance length it really was.
 
-If you see any mistakes, [please correct them on Github](https://github.com/thomastay/personal-blog/issues), or email me at `thomastayac`. Google mail.
+In the example above of MATCH 3 14, we see that the distance code (infgen) is **011**. This corresponds to code 7, which means that the distance is between 13-16, inclusive. The next 2 bits will tell us which one it is. The next two bits are **01**, which tell us that the exact distance to look back is 14.
 
+To execute the match, we look back 14 letters, which points to **1101**, or *t*. So a match of length 3 means that it encodes *the*, which is what we expect, since the word is fa*the*r.
 
-# References
-I found these articles extremely helpful, in no particular order:
-1. [The official deflate spec](https://datatracker.ietf.org/doc/html/rfc1951)
-1. [The official gzip spec](https://datatracker.ietf.org/doc/html/rfc1952)
-1. [Dissecting the GZIP format, by Joshua Davies](https://commandlinefanatic.com/cgi-bin/showarticle.cgi?article=art001)
-1. [Understanding zlib, by Euccas Chen](https://www.euccas.me/zlib/)
-1. [An explanation of the Deflate algorithm, by Antaeus Feldspar](https://zlib.net/feldspar.html)
-1. [gzip + poetry = awesome, by Julia Evans](https://jvns.ca/blog/2013/10/24/day-16-gzip-plus-poetry-equals-awesome/)
-1. [How does gzip work?, by Julia Evans](https://jvns.ca/blog/2013/10/16/day-11-how-does-gzip-work/)
-
-# Full infgen output
-
+Continuing on:
 ```
-! infgen 3.2 output
-!
-time 1701146583		! [UTC Tue Nov 28 04:43:03 2023]
-xfl 2
-os 0
-name 'test-huff.txt
-gzip
-!
-last			! 1
-dynamic			! 10
-count 259 12 16		! 1100 01011 00010
-code 17 4		! 100 000
-code 18 4		! 100
-code 0 2		! 010
-code 6 4		! 100 000 000 000
-code 5 3		! 011 000
-code 4 3		! 011 000
-code 3 2		! 010 000
-code 2 4		! 100 000
-zeros 10		! 111 0111
-lens 6			! 1011
-zeros 21		! 0001010 1111
-lens 3			! 10
-zeros 64		! 0110101 1111
-lens 3			! 10
-lens 0			! 00
-lens 4			! 001
-lens 0			! 00
-lens 4			! 001
-lens 5			! 101
-lens 0			! 00
-lens 4			! 001
-lens 6			! 1011
-zeros 4			! 001 0111
-lens 5			! 101
-lens 5			! 101
-lens 0			! 00
-lens 0			! 00
-lens 3			! 10
-lens 5			! 101
-lens 4			! 001
-zeros 138		! 1111111 1111
-lens 0			! 00
-lens 5			! 101
-lens 3			! 10
-lens 4			! 001
-lens 0			! 00
-lens 0			! 00
-lens 3			! 10
-lens 3			! 10
-zeros 3			! 000 0111
-lens 3			! 10
-lens 0			! 00
-lens 2			! 0011
-lens 2			! 0011
-lens 3			! 10
-! stats table 24:4
-! litlen 10 6
-! litlen 32 3
-! litlen 97 3
-! litlen 99 4
-! litlen 101 4
-! litlen 102 5
-! litlen 104 4
-! litlen 105 6
-! litlen 110 5
-! litlen 111 5
-! litlen 114 3
-! litlen 115 5
-! litlen 116 4
-! litlen 256 5
-! litlen 257 3
-! litlen 258 4
-! dist 2 3
-! dist 3 3
-! dist 7 3
-! dist 9 2
-! dist 10 2
-! dist 11 3
-literal 'h		! 0101
-literal 'e		! 1001
-literal 'c		! 0001
-literal 't		! 1101
-literal 'o		! 00111
-literal 'r		! 010
-literal ' 		! 000
-literal 't		! 1101
-literal 'h		! 0101
-literal 'e		! 1001
-literal ' 		! 000
-literal 'f		! 01011
-literal 'r		! 010
-literal 'a		! 100
-literal 'n		! 11011
-literal 't		! 1101
-literal 'i		! 111111
-literal 'c		! 0001
-literal ' 		! 000
-literal 'f		! 01011
-literal 'a		! 100
-match 3 14		! 01 011 110
+010 000 00111 11011 000 100
+r   ' ' o     n     ' ' a
 
+001 0011
+MATCH 4 3 (n an)
+```
 
+Here we get into the first interesting match. Notice how the match looks back 3 letters, but has a length of 4? This is gzip's way of representing a repeating element (in this case, *n*) within the match itself. 
+
+To decode this, we need to start repeating part of the *decoded* stream itself. Again, confusing at first glance, but it makes it really concise to represent extremely long repeated strings.
+
+For instance, the string *bananananana* could be represented as `b, a, n, match 9 2`.
+
+Let's finish the rest of the code:
+```
+0001 0101 111 00 110       001 110
+c    h    MATCH 3 32 (or ) MATCH 3 3 (or )
+
+100 000 010 100 010 1001
+a   ' ' r   a   r   e
+
+101 00 0011        000 0001 101 110
+MATCH 4 30 ( fat)  ' ' c    MATCH 3 4 (at )
+
+10111 101 110 0010    10 110
+s     MATCH 3 4 (at ) MATCH 3 35 (on )
+
+1000 111 0011     010 0100 10 0011
+MATCH 4 57 (the ) r   MATCH 4 37 (anch)
+
+011111 01111
+LF     END
+```
+
+## Summary
+Wasn't that cool?
+Some observations:
+1. Notice how by the end, gzip has completely compressed out all the space characters.
+1. The compression starts out fairly poor, and gradually gets better. This is true of all LZ77 based encodings.
+    1. Despite this fact, as the length of the string approaches infinity, LZ77 becomes an optimal encoding.
+1. We achieved 74% compression, ignoring the gzip headers and checksums. Here's a breakdown:
+
+- Uncompressed: 74 bytes
+- DEFLATE data: 55 bytes (74%)
+- Compressed data: 26.25 bytes (35%)
+- Block header: 2.125 bytes
+- RLE table: 6 bytes
+- LenLit table: 
+- Distance: 
 
 ### Follow ups
 
