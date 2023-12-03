@@ -1,6 +1,6 @@
 --- 
 title: "Decompressing a gzip file by hand (sorta), part 2: Now with Huffman!"
-date: 2023-12-01:03:59-07:00
+date: 2023-12-01T03:00:59-07:00
 draft: false
 ---
 
