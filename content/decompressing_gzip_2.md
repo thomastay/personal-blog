@@ -1,7 +1,7 @@
 --- 
 title: "Decompressing a gzip file by hand (sorta), part 2: Now with Huffman!"
-date: 2023-11-26T00:03:59-07:00
-draft: true
+date: 2023-12-01:03:59-07:00
+draft: false
 ---
 
 Let's decompress a gzip file by hand, just [like we did last time in part 1](/blog/gzip_investigations), but this time let's decode the decompressed huffman codes too.
