@@ -355,8 +355,24 @@ To decode this, we need to start repeating part of the *decoded* stream itself. 
 
 For instance, the string *bananananana* could be represented as `b, a, n, match 9 2`.
 
-Let's finish the rest of the code:
+Let's finish the rest of the code, putting it all together:
+
 ```
+0101 1001 0001 1101 00111 010 000 1101 0101 1001 000
+h    e    c    t    o     r   ' '   t    h  e    ' ' 
+
+01011 010 100 11011 1101 111111 0001 000 01011 100
+f     r   a   n     t    i      c    ' ' f     a   
+
+01 011 110
+MATCH 3 14 (the)
+
+010 000 00111 11011 000 100
+r   ' ' o     n     ' ' a
+
+001 0011
+MATCH 4 3 (n an)
+
 0001 0101 111 00 110       001 110
 c    h    MATCH 3 32 (or ) MATCH 3 3 (or )
 
@@ -374,6 +390,7 @@ MATCH 4 57 (the ) r   MATCH 4 37 (anch)
 
 011111 01111
 LF     END
+
 ```
 
 ## Final notes
@@ -408,10 +425,10 @@ We then used the Huffman codes we "decoded" to fully decode the compressed outpu
 1. I also want to extend this series to LZ4 decompression, which I think is a criminally underappreciated compression library
 1. I probably *wont* do zstd for now, since I still have yet to understand tANS encoding, and why it's needed. From the simple example we just did, the match table didn't seem that big, and zstd only uses tANS for match codes. It still uses Huffman for literal codes. So I don't get how this really improves compression.
 
-If you see any mistakes, [please correct them on Github](https://github.com/thomastay/personal-blog/issues), or email me at `thomastayac`. Google mail.
+If you see any mistakes, [please correct them on Github](https://github.com/thomastay/personal-blog/issues), or email me at thomastayac@gmail.com
 
 ## Personal ramble
-Thanks so much for reading this far, I really appreciate it. Part 1 was written two years ago, and I've been wanting to write Part 2 for the longest time. During this time, my college girlfriend of 5 years moved in with me, which was one of the happiest times of my life. Sadly, no good things are meant to last, and we broke up earlier this year in March. 
+Thanks so much for reading this far, I really appreciate it. Part 1 was written two years ago, and I've been wanting to write Part 2 for the longest time. During this time, my college girlfriend of 5 years moved to be with me, which was one of the happiest times of my life. Sadly, no good things are meant to last, and we broke up earlier this year in March. 
 
 I guess writing this part 2 has been part of my healing process, coming back to the things I love the most (the nuts and bolts of coding) and trying to discover who I was before I met her. So thanks for being with me on this journey.
 
