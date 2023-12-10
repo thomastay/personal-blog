@@ -4,6 +4,8 @@ date: 2023-12-01T03:00:59-07:00
 draft: false
 ---
 
+*Part 1 here:* [Link to part 1](/blog/gzip_investigations)
+
 Let's decompress a gzip file by hand, just [like we did last time in part 1](/blog/gzip_investigations), but this time let's decode the decompressed huffman codes too.
 
 Start by writing some data to disk:
@@ -34,6 +36,14 @@ $ xxd test-huff.txt.gz
 00000040: 2873 8710 9543 11ee 75ad cc51 237d 0fc7  (s...C..u..Q#}..
 00000050: 9797 d64a 0000 00                        ...J...
 ```
+
+To give you a taste of what the decoding is going to look like, here's the first line of the decoded gzip stream:
+```
+0101 1001 0001 1101 00111 010 000 1101 0101 1001 000
+h    e    c    t    o     r   ' '   t    h  e    ' ' 
+```
+Read on to find out more!
+
 
 ## gzip specific info
 
@@ -75,7 +85,7 @@ count 259 12 16         ! 1100 01011 00010
 The 3 bits of the gzip bitstream tells us that this is the only block in the bitstream, and that it is compressed using dynamic Huffman codes.
 
 We're not going to be inspecting the bitstream too carefully, but just so we're on the same page, this is the bitstream of the DEFLATE data, without the headers, CRC and Length bytes. 
-Remember that the bits are packed LSB to MSB, and any integers are interpreted in little endian format (**except Huffman codes, which are packed MSB to LSB**). `xxd` prints bits from MSB to LSB, so you have to read the bitstream backwards. Check part 1 for the details.
+Remember that the bits are packed LSB to MSB, and any integers are interpreted in little endian format (**except Huffman codes, which are packed MSB to LSB**). `xxd` prints bits from MSB to LSB, so you have to read the bitstream backwards. Check [part 1](/blog/gzip_investigations) for the details.
 ```
 $ xxd -s 24 -l 55 -b .\test-huff.txt.gz
 00000018: 00010101 10001011 01000001 00001010 00000000 00110001  ..A..1
@@ -209,8 +219,7 @@ Let's take an example of this. We'd represent our code above like this:
 18 [21] 3
 18 [64] 3 0 4 0 4 5 0 4 6
 17 [4] 5 5 0 0 3 5 4
-18 [138] 0 5 3 4 0 0 3 3
-17 [3] 3 0 2 2 3
+18 [138] 0 5 3 4
 ```
 *The numbers in brackets are fixed length ints, and are not part of the codelengths*
 
@@ -230,7 +239,7 @@ So, gzip represents the codes 0-18 using a second round of Huffman codes. In our
 | 17 | 1110 | 4 |
 | 18 | 1111 | 4 |
 
-These second-round code lengths (code lengths of code lengths) are then encoded as fixed 3 bit integers, and laid out in a fixed 16 element array.
+These second-round code lengths (code lengths of code lengths) are then encoded as fixed 3 bit integers, and laid out in a fixed 18 element array.
 ```
 2,0,4,2,3,3,4,0
 0,0,0,0,0,0,0,0
@@ -248,7 +257,7 @@ So our codelengths would instead be encoded in this order:
 0,3,0,3,0,2,0,4
 0,0,0
 ```
-The non-zero length of the array is 16 and it's encoded separately in the block header. So we can just drop the last 3 elements and get this bit-level encoding:
+The non-zero length of the array is 16 (the last 3 elts are zeroes) and the non-zero length is encoded separately in the block header. So we can just drop the last 3 elements and get this bit-level encoding:
 ```
 000 100 100 010 000 000 000 100
 000 011 000 011 000 010 000 100
