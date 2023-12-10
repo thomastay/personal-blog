@@ -1,4 +1,4 @@
-baseURL = "https://ttay.me/blog/"
+baseURL = "https://thomastay.dev/blog/"
 languageCode = "en-us"
 title = "Thomas Tay's blog"
 theme = "yinyang"
