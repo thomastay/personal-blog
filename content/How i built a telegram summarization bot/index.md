@@ -115,7 +115,7 @@ Again, I wouldn't recommend this setup. Use Supabase or even just sqlite to get 
 # Conclusion
 Overall, this was a fun and enlightening project to work on. I dedicated about a month to it on weekends, focusing mainly on improving the prompts. The DB + Telegram side was relatively quick to work on, and I essentially hacked it together in a weekend.
 If you're interested in checking out the code, the repository is open source and can be found here: [URL Summarizer Telegram Bot](https://github.com/thomastay/url-summarizer-telegram-bot)
-If you'd like to try out the bot, feel free to DM me on Twitter for an invite code [@thomastayac](https://twitter.com/thomastayac), or send me an email at [thomastayc@gmail.com](mailto:thomastayc@gmail.com). If there is enough interest, I plan to open this up to others to use. However, the API cost is currently a significant factor in allowing only family and friends access.
+If you'd like to try out the bot, feel free to DM me on Twitter for an invite code [@thomastayac](https://twitter.com/thomastayac), or send me an email at [thomastayac@gmail.com](mailto:thomastayc@gmail.com). If there is enough interest, I plan to open this up to others to use. However, the API cost is currently a significant factor in allowing only family and friends access.
 
 # References
 1. https://openai.com/research/summarizing-books. This article was my inspiration for the chunking strategy
