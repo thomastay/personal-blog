@@ -2,3 +2,6 @@ gemtext/
 thomas_gemdown.jar
 .certificates/
 .hugo*
+public/
+.obsidian
+.DS_Store
