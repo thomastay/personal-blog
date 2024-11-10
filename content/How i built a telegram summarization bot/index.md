@@ -1,9 +1,9 @@
 ---
 title: How I Built a Telegram Summarization Bot
-date: 2024-02-29T11:31:00+08:00
+date: 2024-04-11T00:31:00-07:00
 draft: false
 ---
-I'm excited to share a side project I've been working on - a Telegram bot that summarizes articles in 5 bullet points.
+I've been working on a Telegram bot that summarizes articles in 5 bullet points.
 
 Why?
 - Ideal for breaking news, saving time compared to reading the entire article
@@ -29,6 +29,7 @@ For summarization, I use Mixtral, an open-source model that is cheaper and bette
 >  - Google apologizes after new Gemini AI refuses to show pictures, achievements of White people
 
 Mixtral is hosted by several providers, so I recommend shopping around to find the best one for your needs. I use Lepton as my API provider because it offers quick response times for low prices, but I'm considering switching to Groq, which uses custom chips instead of GPUs to serve Mixtral.
+
 For my bot, I pay approximately $1.50/mo to Lepton for their API for a thousand articles. That's with one user. On average each article has about 2750 tokens of input and 250 tokens of output.
 
 Here's a chart showing the response time vs price for various providers, from [artificialanalysis](https://artificialanalysis.ai/models/mixtral-8x7b-instruct/hosts?parallel_queries=single&prompt_length=long). The chart isn't that accurate: Lepton is charging me $0.5 / M tokens, not $0.35. But still, Lepton has been pretty good in the time I've used it.
@@ -36,6 +37,12 @@ Here's a chart showing the response time vs price for various providers, from [a
 ![Lepton analysis](total-response-time-vs-price.png)
 
 *Chart was taken on Feb 29*
+
+### Other models
+
+With the new Claude Haiku and Mistral 8x22b models out, I would strongly consider moving to those instead. 
+- Haiku is $0.25/1.25, which is already cheaper than Lepton
+- Mistral 8x22b is going for $1.08/1.08, which is pretty expensive, but it's one of the best models out there. I'd wait for it to get fine tuned with a good Nous-Hermes or Nous-Capybara finetune, though.
 ## Summarizing longer articles
 
 Mixtral has a large context length of approximately 25k words or 32k tokens, but it produces better summaries when fed shorter articles. To summarize longer articles, I use a chunking strategy where I chop the text into pieces, summarize each piece into one paragraph, then summarize the paragraphs. This results in a more comprehensive summary that covers more broad points about the article.
@@ -67,7 +74,8 @@ While there is no shortage of complicated algorithms out there offering complex 
 While summarization can be useful for quickly understanding the main points of an article, I found that it wasn't always what I wanted. What I really want is something that allows me to transfer knowledge into my brain faster. Summaries aren't information dense enough for that, and if the article is well written, there isn't much else you can do to just read it.
 
 That said, summaries can be useful for articles that contain a lot of fluff or for answering specific questions that are buried in a textbook. 
-Summaries are good for case #1 since they cut through fluff amazingly. But for case #2, I recommend using a Q&A tool like https://pdf.ai/.
+Summaries are good for the case of fluff since they cut through fluff amazingly. But for Q&A, using ChatGPT Plus or Copilot Pro would probably be a lot better, since you can just upload a PDF file there and ask questions about it.
+
 *tldr* - Summarization is like JPEG for ideas, and if you want a png, you'll be disappointed.
 ## Disagreeing
 One interesting feature of the bot is that it can also disagree with articles, which can help you think critically about what you're reading. Here's an example of Mixtral disagreeing with [danluu's article on people mattering](https://danluu.com/people-matter/):
@@ -84,6 +92,23 @@ I'm trying out different techniques and will post about it once I'm done with re
 
 The problem is that these models are incredibly expensive. Claude 3 Opus would cost ~$0.06 per disagreement, 50x more expensive than Mixtral. Even if you only generate 10 disagreements a day, that's $18 / mo in api costs! 💰💰 Which is why I'm working to see if I can get better results from cheaper models.
 
+# Telegram API
+Working with the telegram API was surprisingly easy and I don't have much to say here. The examples on the python-telegram-bot repo are way more helpful than the documentation. For more info, I'd recommend reading the file `bot_handlers.py` in [my repo](https://github.com/thomastay/url-summarizer-telegram-bot).
+
+# Fetching and parsing articles
+I used [trafilatura](https://trafilatura.readthedocs.io/en/latest/), which is an open source library for parsing HTML. BeautifulSoup is great when you know the structure of your document, but trafilatura is tuned for extracting articles from text.
+Not much to say here, just use `trafilatura.extract_text`. 
+
+As I read a lot of blog posts with code samples, which you don't need for summarization, I setup trafilatura to filter out `<code>`, `<pre>` and `<table>` blocks, which you can do with the following snippet.
+```python
+trafilatura.extract(
+	downloaded,
+	prune_xpath=["//code", "//pre"],
+	include_tables=False,
+)
+```
+
+I feel like there's so much more that I want to do here. IMO the biggest issue about an article summarizer is getting quality articles out of the HTML. I intend to write custom parsers for common domains as my next project, and hopefully improve the quality of article extraction for news articles at least.
 # Infrastructure
 *Disclaimer*: this was an experimental project so I decided to use infrastructure that I'm not typically accustomed to. I would not recommend this stack - instead, just use Supabase!
 
@@ -103,7 +128,7 @@ Due to these reasons, I'm considering moving to hosting my own server soon on an
 *Disclosure: I work for Microsoft*
 
 ## Database
-I use Azure blob & table storage as my database. Yes, really.
+I use Azure blob & table storage as my database :)
 
 I have a table that stores summaries along with the user ID of the person who generated them. It's keyed on the timestamp of the summary creation and is primarily used for me to review bad summaries and figure out how to improve things.
 ![summaries](summaries.png)
@@ -115,7 +140,7 @@ Again, I wouldn't recommend this setup. Use Supabase or even just sqlite to get 
 # Conclusion
 Overall, this was a fun and enlightening project to work on. I dedicated about a month to it on weekends, focusing mainly on improving the prompts. The DB + Telegram side was relatively quick to work on, and I essentially hacked it together in a weekend.
 If you're interested in checking out the code, the repository is open source and can be found here: [URL Summarizer Telegram Bot](https://github.com/thomastay/url-summarizer-telegram-bot)
-If you'd like to try out the bot, feel free to DM me on Twitter for an invite code [@thomastayac](https://twitter.com/thomastayac), or send me an email at [thomastayac@gmail.com](mailto:thomastayc@gmail.com). If there is enough interest, I plan to open this up to others to use. However, the API cost is currently a significant factor in allowing only family and friends access.
+If you'd like to know more, feel free to @ me on Twitter [@thomastayac](https://twitter.com/thomastayac), or send me an email at [thomastayac@gmail.com](mailto:thomastayc@gmail.com). Sorry but I can't open up access for now, the API cost is too expensive to open it up for public use, and I don't feel it's in any state to charge people for it.
 
 # References
 1. https://openai.com/research/summarizing-books. This article was my inspiration for the chunking strategy
