@@ -14,7 +14,7 @@ theme = "yinyang"
     style = "monokai"
     tabWidth = 4
 
-[author]
+[params.author]
 name = "Thomas"
 homepage = "https://thomastay.dev/"
 
