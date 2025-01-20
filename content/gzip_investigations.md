@@ -4,6 +4,8 @@ date: 2021-10-16T00:03:59-07:00
 draft: false
 ---
 
+_2024 Update:_ [Part 2](/blog/decompressing_gzip_2) _is out!_
+
 Let's make a gzipped file and see what's in it. We'll keep it simple: just write 8 'a's to a file. 
 
 ```
