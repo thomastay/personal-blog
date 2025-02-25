@@ -77,7 +77,7 @@ With 18A release, the price has gone up to $27.50 at its peak. That would mean t
 How much you think Intel Foundry is worth in billions, not including its assets? Take that amount, divide it by 4.2 and add it to $19.67, that's what the bull case for Intel would look like.
 
 ## Intel Foundry revenue valuation
-*really, really don't trust this section! I'm leaving it in for awareness but it is so wrong*
+*really, really don't trust this section! I'm leaving it in for awareness but it is so wrong I don't dare to leave it not crossed out*
 
 ~~A lot depends on what we expect Intel Foundry's revenues to look like in 10 years time.
 Assuming a 10% YoY growth rate and the current market valuation of $5/share, that means that they expect Intel Foundry to generate operating income of $1.6 billion in 10 years.
@@ -88,3 +88,8 @@ What would that look like? That means that Intel would have a 200 billion dollar
 ~~This is obviously the bull case for Intel. Can it get even 5% of TSMC's OIs? I think it's possible if Intel pulls off an amazing recovery.~~
 
 ~~But there's also the possibility that it doesn't pull it off. Still, the current price of $5/share is dramatically undervalued even if you assume it captures some form of TAM. The idea that there is only one winner in the semi race might not be true if Intel manages to catch up.~~
+
+## Conclusion
+Intel seems undervalued when valued without Foundry earnings, and insanely undervalued when valued with potential Foundry earnings. It's only a fair valuation because right now, the market believes that Foundry will bankrupt Intel.
+
+I think this trade has asymmetric upside. If things go well, stock goes up, but if not, stock will probably stabilize around $15-20 per share. Overall, I'm buying.
