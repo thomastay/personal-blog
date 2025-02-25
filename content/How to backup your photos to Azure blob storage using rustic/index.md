@@ -1,7 +1,7 @@
 ---
 title: How to backup your photos to Azure blob storage using rustic
 date: 2024-11-09T00:31:00-07:00
-draft: true
+draft: false
 ---
 ## Basic summary of my backup strategy
 - I backup my files to Azure blob storage

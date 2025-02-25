@@ -1,7 +1,7 @@
 ---
 title: Intel sucks but here's why I'm buying it
 date: 2025-02-23T22:44:52+08:00
-draft: true
+draft: false
 ---
 In the very long run, I believe that Intel's stock has not much value.
 

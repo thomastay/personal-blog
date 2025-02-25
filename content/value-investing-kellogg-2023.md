@@ -1,7 +1,7 @@
 ---
 title: "Value investing analysis: Kellogg (KLG) 2023"
 date: 2023-11-12T12:36:35-08:00
-draft: true
+draft: false
 ---
 
 # Summary
@@ -78,15 +78,7 @@ Of this, currently 13.7M per quarter will have to go out as dividends. The max a
 
 This assumes that their property investment remains constant, and that they can't reduce COGS through modernization of the plant.
 
-## Growth potential
-
-## Catalysts
-
-
-
-## Company-specific risks
-
-## Relative valuation
+**note: here is where I gave up, posting these notes years after the fact as analysis notes**
 
 
 # Footnotes

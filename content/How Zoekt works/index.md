@@ -1,7 +1,7 @@
 ---
 title: Exploring Zoekt
 date: 2025-01-01T12:42:06+08:00
-draft: true
+draft: false
 ---
 
 Zoekt is a full text search engine that lets you run arbitrary substring or regular expression searches on a large set of files. I think the technology is highly underrated, and I spent some time spelunking in the Zoekt codebase, so here's how it works.
@@ -64,6 +64,7 @@ Sourcegraph, utility or Gerrit related binaries:
 16. zoekt-test
 17. zoekt-sourcegraph-indexserver
 
+**Note: still under construction, but posting this as I won't have much time to work on it next few weeks**
 
 ## References
 1. https://github.com/sourcegraph/zoekt/blob/main/doc/design.md

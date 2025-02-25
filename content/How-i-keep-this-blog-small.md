@@ -1,7 +1,7 @@
 ---
-title: "How this blog is made"
+title: How this blog is made
 date: 2022-01-05T01:04:48-08:00
-draft: true
+draft: false
 ---
 
 TODO: this intro sounds bad
@@ -58,7 +58,4 @@ The only downside of my current setup is that it doesn't support Dark mode as of
 Another thing that would probably be nice is something like what [Nayuki does when you click on a section header](https://www.nayuki.io/page/about#contact), which is to highlight the section using the (unknown to me!) CSS target selection feature.
 
 Something which I won't implement, but is quite the visual delight, is Amos' "Cool bear's hot tip" (fasterthanli.me). [Check out his blog post on Rust build profiling](https://fasterthanli.me/articles/why-is-my-rust-build-so-slow) to see what it looks like.
-
-
-# Performance
 
